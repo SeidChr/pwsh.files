@@ -11,7 +11,7 @@ function Update-Dotfiles {
 
     Get-Item $download_path | Unblock-File
 
-    Expand-Archive -Path $download_path -DestinationPath ~/ -Force
+    Expand-Archive -Path $download_path -DestinationPath ~/.pwsh -Force
     
     Remove-Item $download_path
 }
