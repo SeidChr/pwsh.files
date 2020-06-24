@@ -19,9 +19,17 @@ function Update-Dotfiles {
 function Get-DockerShell {
     param(
         $image = "debian",
-        $entrypoint = "/bin/bash"
+        $entrypoint,
+        $shell #alias for entrypoint
     )
 
-    #& docker run -it --rm --entrypoint /bin/bash node
-    & docker run -it --rm --entrypoint $entrypoint $image
+    if (![string]::IsNullOrWhiteSpace($shell)) { 
+        $entrypoint = $shell
+    }
+
+    if (![string]::IsNullOrWhiteSpace($entrypoint)) {
+        & docker run -it --rm --entrypoint $entrypoint $image
+    } else {
+        & docker run -it --rm $image
+    }
 }
