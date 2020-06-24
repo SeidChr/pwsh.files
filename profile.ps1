@@ -10,5 +10,5 @@ $env:path = $env:path + ";."
 Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
 
 # Autocompletion for arrow keys
-Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
+#Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
+#Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
