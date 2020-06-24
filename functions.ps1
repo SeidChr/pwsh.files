@@ -15,3 +15,13 @@ function Update-Dotfiles {
     
     Remove-Item $download_path
 }
+
+function Get-DockerShell {
+    param(
+        $image = "debian",
+        $entrypoint = "/bin/bash"
+    )
+
+    #& docker run -it --rm --entrypoint /bin/bash node
+    & docker run -it --rm --entrypoint $entrypoint $image
+}
