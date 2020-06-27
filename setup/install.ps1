@@ -1,7 +1,7 @@
 function Update-Dotfiles {
     param(
         $account = "SeidChr",
-        $repository = "dotfiles"
+        $repository = "pwsh.files"
     )
 
     $url = "https://github.com/$account/$repository/archive/master.zip"
@@ -12,7 +12,7 @@ function Update-Dotfiles {
     Get-Item $download_path | Unblock-File
 
     Expand-Archive -Path $download_path -DestinationPath ~/.pwsh -Force
-    
+
     Remove-Item $download_path
 }
 
