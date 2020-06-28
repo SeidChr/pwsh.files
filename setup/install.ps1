@@ -1,5 +1,5 @@
 param([switch]$NoCheckout)
-# iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iex
+# iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' -Headers @{"Cache-Control"="no-cache"} | iex
 
 $account = "SeidChr"
 $repository = "pwsh.files"
