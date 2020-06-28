@@ -28,8 +28,7 @@ if ($NoCheckout) {
     # iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iexup/install.ps1' | iex
 } else {
     $command = ". $destination\profile.ps1"
-    $repo = $githubBaseUrl + ".git"
-    & git checkout $repo $destination
+    & git clone "$githubBaseUrl.git" $destination
     if (!(Get-Content $profile | Out-String).Contains($command)) {
         Add-Content $profile -Value $command
     }
