@@ -28,7 +28,7 @@ if ($NoCheckout) {
     # iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iexup/install.ps1' | iex
 } else {
     $command = ". $destination\profile.ps1"
-    & git clone "$githubBaseUrl.git" ($destination | Resolve-Path)
+    & git clone "$githubBaseUrl.git" $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($destination)
     if (!(Get-Content $profile | Out-String).Contains($command)) {
         Add-Content $profile -Value $command
     }
