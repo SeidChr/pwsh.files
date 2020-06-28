@@ -33,3 +33,6 @@ if ($NoCheckout) {
         Add-Content $profile -Value $command
     }
 }
+
+# load profile
+. $profile
