@@ -1,25 +1,35 @@
+param([switch]$NoCheckout)
+# iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iex
+
 $account = "SeidChr"
 $repository = "pwsh.files"
-$destination = "~/.pwsh"
-$version = "master"
+$destination = "~\.pwsh"
+$githubBaseUrl = "https://github.com/$account/$repository"
 
-$url = "https://github.com/$account/$repository/archive/$version.zip"
-$downloadPath = "$env:TEMP\dotfiles\$version.zip"
-$unzipPath = "$env:TEMP\dotfiles\$version"
+if ($NoCheckout) {
+    $version = "master"
 
-New-Item -ItemType Directory -Force -Path (Split-Path $downloadPath -Parent)
-Invoke-WebRequest -Uri $url -OutFile $downloadPath
+    $url = "$githubBaseUrl/archive/$version.zip"
+    $downloadPath = "$env:TEMP\dotfiles\$version.zip"
+    $unzipPath = "$env:TEMP\dotfiles\$version"
 
-Get-Item $downloadPath | Unblock-File
+    New-Item -ItemType Directory -Force -Path (Split-Path $downloadPath -Parent)
+    Invoke-WebRequest -Uri $url -OutFile $downloadPath
 
-Expand-Archive -Path $downloadPath -DestinationPath $unzipPath -Force
+    Get-Item $downloadPath | Unblock-File
 
-#$extractedFilesFilter = "$unzipPath/$repository-$version/**/*.*"
-#Get-ChildItem -Path $extractedFilesFilter -Recurse | Move-Item -Destination $destination -WhatIf
-$extractedFilesFilter = "$unzipPath/$repository-$version/*"
-Copy-Item $extractedFilesFilter -Destination $destination -Recurse -Force
-#Move-Item -Path $extractedFilesFilter -Destination $destination -Force
+    Expand-Archive -Path $downloadPath -DestinationPath $unzipPath -Force
 
-#Remove-Item $downloadPath
+    $extractedFilesFilter = "$unzipPath/$repository-$version/*"
+    Copy-Item $extractedFilesFilter -Destination $destination -Recurse -Force
 
-# iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iex
+    #Remove-Item $downloadPath
+
+    # iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iexup/install.ps1' | iex
+} else {
+    $command = ". $destination\profile.ps1"
+    & git checkout "$githubBaseUrl.git" $destination
+    if (!(Get-Content $profile | Out-String).Contains($command)) {
+        Add-Content $profile -Value $command
+    }
+}
