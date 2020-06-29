@@ -57,3 +57,7 @@ function Add-Path {
         #$env:PATH += [System.IO.Path]::PathSeparator + $value
     }
 }
+
+function Edit-Profile {
+    & code (Resolve-Path ~/.pwsh)
+}
