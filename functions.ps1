@@ -61,3 +61,13 @@ function Add-Path {
 function Edit-Profile {
     & code (Resolve-Path ~/.pwsh)
 }
+
+function Get-LastWriteTime {
+    param(
+        [string] $filter = "",
+        [string] $path = "."
+    )
+
+    Get-ChildItem -Directory $path -Recurse -Filter $filter | % { $_.LastWriteTimeUtc } | Sort-Object -Descending -Top 1
+    #Get-ChildItem $path -Recurse -Filter $filter | % { $_.LastWriteTimeUtc } | Measure -Maximum
+}
