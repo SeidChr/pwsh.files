@@ -10,16 +10,12 @@ function Update-Dotfiles {
 function Get-DockerShell {
     param(
         $image = "debian",
-        $entrypoint,
-        $shell #alias for entrypoint
+        [Alias("entrypoint")]
+        $shell
     )
 
-    if (![string]::IsNullOrWhiteSpace($shell)) { 
-        $entrypoint = $shell
-    }
-
-    if (![string]::IsNullOrWhiteSpace($entrypoint)) {
-        & docker run -it --rm --entrypoint $entrypoint $image
+    if (![string]::IsNullOrWhiteSpace($shell)) {
+        & docker run -it --rm --entrypoint $shell $image
     } else {
         & docker run -it --rm $image
     }
