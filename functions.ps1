@@ -69,9 +69,17 @@ function Get-LastWriteTime {
 }
 
 function Start-Parallel {
-    param([ScriptBlock[]] [Parameter(Position=0)]$ScriptBlock)
+    param(
+        [ScriptBlock[]]
+        [Parameter(Position = 0)]
+        $ScriptBlock,
 
-    $jobs = $ScriptBlock | ForEach-Object { Start-Job -ScriptBlock $_ }
+        [Object[]]
+        [Alias("arguments")]
+        $parameters
+    )
+
+    $jobs = $ScriptBlock | ForEach-Object { Start-Job -ScriptBlock $_ -ArgumentList $parameters }
     $colors = "Blue", "Red", "Cyan", "Green", "Magenta"
     $colorCount = $colors.Length
 
@@ -89,8 +97,7 @@ function Start-Parallel {
                 $i++
             }
         }
-    }
-    finally {
+    } finally {
         Write-Host "Stopping Parallel Jobs ..." -NoNewline
         $jobs | Stop-Job
         $jobs | Remove-Job -Force
