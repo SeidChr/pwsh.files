@@ -68,6 +68,7 @@ function Get-LastWriteTime {
     #Get-ChildItem $path -Recurse -Filter $filter | % { $_.LastWriteTimeUtc } | Measure -Maximum
 }
 
+# . $profile; $block = { 1..20 | % { $wait = (Get-Random -Maximum 3 -Minimum 0); Start-Sleep $wait ; Write-Output "$_ $wait" }}; Start-Parallel $block,$block,$block,$block;
 function Start-Parallel {
     param(
         [ScriptBlock[]]
@@ -93,7 +94,7 @@ function Start-Parallel {
                     Write-Host "$i> "-NoNewline -ForegroundColor $fgColor
                     Write-Host $_
                 }
-                
+
                 $i++
             }
         }
