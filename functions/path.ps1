@@ -1,11 +1,11 @@
 function Get-Path {
     $pathParts = $env:PATH -split [System.IO.Path]::PathSeparator
     $cleanedPath = New-Object System.Collections.Generic.List[string]
-    $pathParts | Where-Object { ![string]::IsNullOrWhiteSpace($_) } `
-    | ForEach-Object {
+    $pathParts `
+        | Where-Object { ![string]::IsNullOrWhiteSpace($_) } `
+        | ForEach-Object {
         $newPart = $_.Trim("/").Trim("\")
-        if ($cleanedPath -cNotContains $newPart)
-        {
+        if ($cleanedPath -cNotContains $newPart) {
             $cleanedPath.Add($newPart)
         }
     }
