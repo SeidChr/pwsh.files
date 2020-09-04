@@ -9,6 +9,25 @@ function Get-LastWriteTime {
 }
 
 # . $profile; $block = { 1..20 | % { $wait = (Get-Random -Maximum 3 -Minimum 0); Start-Sleep $wait ; Write-Output "$_ $wait" }}; Start-Parallel $block,$block,$block,$block;
+function Write-JobOutput {
+    param(
+        $jobs,
+        $colors = @("Blue", "Red", "Cyan", "Green", "Magenta")
+    )
+    $colorCount = $colors.Length
+    $jobs | ForEach-Object { $i = 1 } {
+        $fgColor = $colors[($i - 1) % $colorCount]
+        $out = $_ | Receive-Job
+        $out = $out -split [System.Environment]::NewLine
+        $out | ForEach-Object {
+            Write-Host "$i> "-NoNewline -ForegroundColor $fgColor
+            Write-Host $_
+        }
+        
+        $i++
+    }
+}
+
 function Start-Parallel {
     param(
         [ScriptBlock[]]
@@ -17,31 +36,34 @@ function Start-Parallel {
 
         [Object[]]
         [Alias("arguments")]
-        $parameters
+        $parameters,
+
+        [Alias("sleep")]
+        $pollSleepMilliseconds = 250,
+
+        [Alias("init")]
+        [scriptblock] $initializationScript,
+
+        [Alias("input")]
+        [Object]$inputObject
     )
 
-    $jobs = $ScriptBlock | ForEach-Object { Start-Job -ScriptBlock $_ -ArgumentList $parameters }
-    $colors = "Blue", "Red", "Cyan", "Green", "Magenta"
-    $colorCount = $colors.Length
+    $jobs = $ScriptBlock | ForEach-Object { 
+        Start-Job -ScriptBlock $_ -InitializationScript $initializationScript -ArgumentList $parameters -InputObject $input
+    }
 
     try {
         while (($jobs | Where-Object { $_.State -ieq "running" } | Measure-Object).Count -gt 0) {
-            $jobs | ForEach-Object { $i = 1 } {
-                $fgColor = $colors[($i - 1) % $colorCount]
-                $out = $_ | Receive-Job
-                $out = $out -split [System.Environment]::NewLine
-                $out | ForEach-Object {
-                    Write-Host "$i> "-NoNewline -ForegroundColor $fgColor
-                    Write-Host $_
-                }
-
-                $i++
-            }
+            Write-JobOutput -jobs $jobs
+            # process needs some time to breathe
+            Start-Sleep -Milliseconds $pollSleepMilliseconds
         }
-    } finally {
-        Write-Host "Stopping Parallel Jobs ..." -NoNewline
+    }
+    finally {
+        Write-Host "Stopping Parallel Jobs ..."
         $jobs | Stop-Job
+        Write-JobOutput -jobs $jobs
         $jobs | Remove-Job -Force
-        Write-Host " done."
+        Write-Host "Stopped all jobs."
     }
 }
