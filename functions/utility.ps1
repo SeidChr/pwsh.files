@@ -67,3 +67,27 @@ function Start-Parallel {
         Write-Host "Stopped all jobs."
     }
 }
+
+function Restart-Elevated {
+    param($script = $MyInvocation.PSCommandPath)
+
+    if (!$IsWindows) {
+        return
+    }
+
+    $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (!$isAdmin) {
+        $powserShellExecutable = (Get-Process -id $pid | Get-Item).FullName
+        $workingDirectory = Get-Location
+
+        Start-Process -Verb RunAs -FilePath $powserShellExecutable -ArgumentList "`"$script`"" -WorkingDirectory $workingDirectory -Wait
+        exit
+    }
+}
+
+function Confirm-Windows {
+    if (!$IsWindows) {
+        Throw "Cannot confirm windows envoronment. Environment is Windows: $IsWindows, is Linux: $IsLinux, is Mac: $IsMacOS"
+    }
+}
