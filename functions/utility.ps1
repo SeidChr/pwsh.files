@@ -68,6 +68,25 @@ function Start-Parallel {
     }
 }
 
+function Start-Elevated {
+    if (!$IsWindows) {
+        return
+    }
+
+    $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if ($isAdmin) {
+        "Already elevated."
+    } else {
+        $powserShellExecutable = (Get-Process -id $pid | Get-Item).FullName
+        $workingDirectory = Get-Location
+
+        Write-Host "Starting Elevated Shell..." -NoNewline
+        $null = Start-Process -Verb RunAs -FilePath $powserShellExecutable -WorkingDirectory $workingDirectory
+        Write-Host "Started."
+    }
+}
+
 function Restart-Elevated {
     param($script = $MyInvocation.PSCommandPath)
 
