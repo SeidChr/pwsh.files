@@ -62,7 +62,7 @@ function Get-DockerShell {
     }
 
     if ($mapFrom) {
-        $mappingArgument = "-v `"$(Resolve-Path $mapFrom):/$mapTo`""
+        $mappingArgument = "-v `"$(Resolve-Path $mapFrom):/$mapTo`" -w `"$mapTo`""
     }
 
     $cmd = "docker run -it --rm $mappingArgument $entrypointArgument $image";
