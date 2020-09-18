@@ -20,13 +20,24 @@ function Repair-Path {
 }
 
 function Add-Path {
-    param([string] $value)
+    param(
+        # A path value to be added.
+        [string] $value,
+
+        # Will add the entry to the beginning of the path, instead of the end.
+        [switch] $prefix,
+
+        # Will resolve the $value to an existing path, before adding it.
+        [switch] $resolve
+    )
+
+    if ($resolve) {
+        $value = Resolve-Path $value
+    }
+
     $currentPathValues = Get-Path
     if ($currentPathValues -cNotContains $value) {
-        $env:PATH = ($currentPathValues + $value) -join [System.IO.Path]::PathSeparator
-        #[System.Environment]::SetEnvironmentVariable("PATH", $newPath, "Process")
-        # do not use the Get-Path output, or it will re-order 
-        # the content, which is not desireable
-        #$env:PATH += [System.IO.Path]::PathSeparator + $value
+        $newPath = if ($prefix) { $value + $currentPathValues } else { $currentPathValues + $value }
+        $env:PATH = $newPath -join [System.IO.Path]::PathSeparator
     }
 }
