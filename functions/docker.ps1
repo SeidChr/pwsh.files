@@ -1,3 +1,33 @@
+function Test-DockerAvailable {
+    $null = & docker version *>&1
+    $LASTEXITCODE -eq 0
+}
+
+function Start-Docker4Windows {
+    if (-not $IsWindows) {
+        return
+    }
+
+    if (-not (Test-DockerAvailable)) {
+        Write-Host "Starting Docker 4 Windows." -NoNewline
+        Start-Process (Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe")
+        while (-not (Test-DockerAvailable)) {
+            Start-Sleep -Seconds 10
+            Write-Host "." -NoNewline
+        }
+
+        Write-Host "done."
+    } else {
+        Write-Host "Docker 4 Windows is already running."
+    }
+}
+
+function Start-Docker {
+    if ($IsWindows) {
+        Start-Docker4Windows
+    }
+}
+
 function Get-DockerShell {
     param(
         $image = "debian",
@@ -5,30 +35,10 @@ function Get-DockerShell {
         $entrypoint,
         [Alias("mappedFolderPath")]
         $mapFrom,
-        $mapTo = "project",
-        [switch]
-        $start = $false
+        $mapTo = "project"
     )
 
-    if ($start -and $IsWindows) {
-        $checkDocker4WinStopped = { 
-            $null = & docker version *>&1
-            -not $LASTEXITCODE -eq 0
-        }
-
-        if (& $checkDocker4WinStopped) {
-            Write-Host "Starting Docker 4 Windows" -NoNewline
-            Start-Process (Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe")
-            while (& $checkDocker4WinStopped) {
-                Write-Host "." -NoNewline
-                Start-Sleep -Seconds 10
-            }
-
-            Write-Host "done."
-        } else {
-            Write-Host "Docker 4 Windows is already running."
-        }
-    }
+    Start-Docker
 
     $entrypointArgument = "";
     $mappingArgument = ""
