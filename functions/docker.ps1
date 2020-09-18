@@ -11,12 +11,17 @@ function Get-DockerShell {
     )
 
     if ($start -and $IsWindows) {
-        $checkDocker4WinStopped = { -not (Get-Process 'com.docker.proxy' -ea SilentlyContinue) }
+        $checkDocker4WinStopped = { 
+            $null = & docker version *>&1
+            -not $LASTEXITCODE -eq 0
+        }
+
         if (& $checkDocker4WinStopped) {
-            Write-Host "Starting Docker 4 Windows..." -NoNewline
+            Write-Host "Starting Docker 4 Windows" -NoNewline
             Start-Process (Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe")
             while (& $checkDocker4WinStopped) {
-                Start-Sleep -Seconds 20
+                Write-Host "." -NoNewline
+                Start-Sleep -Seconds 10
             }
 
             Write-Host "done."
