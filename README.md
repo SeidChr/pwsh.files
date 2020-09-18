@@ -39,7 +39,8 @@ This file will then load all the other files, which are checked out at the same 
 This file is the entrypoint of this repository. It dot-sources all required files and also makes some adjustments:
 
 - Add `.` to the END of the path. So you wont have to type .\ before each and every command. 
-- Activate the menu-complete: ![Menu-Autocomplete](/assets/menu-autocomplete.jpg)
+- Activate the menu-complete:  
+![Menu-Autocomplete](/assets/menu-autocomplete.jpg)
 
 
 # Prompt
@@ -123,7 +124,7 @@ Starts multiple script-blocks in parallel using jobs. Giving you a nice console 
 `ctrl+c` to end the jobs.
 
 #### Ping-Sample:
-code below...
+code below...  
 ![Start-Parallel](/assets/start-parallel.jpg)
 
 ```
