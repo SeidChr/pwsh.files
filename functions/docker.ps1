@@ -49,6 +49,10 @@ function Get-DockerShell {
     $entrypointArgument = "";
     $mappingArgument = ""
 
+    if (-not ($mapTo.StartsWith("/"))) {
+        $mapTo = "/" + $mapTo
+    }
+
     $image = switch ($image) {
         ".netsdk" { "mcr.microsoft.com/dotnet/core/sdk"; break }
         ".netasp" { "mcr.microsoft.com/dotnet/core/aspnet"; break }
@@ -62,7 +66,7 @@ function Get-DockerShell {
     }
 
     if ($mapFrom) {
-        $mappingArgument = "-v `"$(Resolve-Path $mapFrom):/$mapTo`" -w `"$mapTo`""
+        $mappingArgument = "-v `"$(Resolve-Path $mapFrom):$mapTo`" -w `"$mapTo`""
     }
 
     $cmd = "docker run -it --rm $mappingArgument $entrypointArgument $image";
