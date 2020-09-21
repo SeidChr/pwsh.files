@@ -124,7 +124,7 @@ Starts multiple script-blocks in parallel using jobs. Giving you a nice console 
 `ctrl+c` to end the jobs.
 
 #### Ping-Sample:
-code below...  
+code below...
 ![Start-Parallel](/assets/start-parallel.jpg)
 
 ```

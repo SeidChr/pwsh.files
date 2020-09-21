@@ -66,6 +66,10 @@ function Get-DockerShell {
     }
 
     if ($mapFrom) {
+        if (-not ($mapTo.StartsWith("/"))) {
+            $mapTo = "/" + $mapTo;
+        }
+
         $mappingArgument = "-v `"$(Resolve-Path $mapFrom):$mapTo`" -w `"$mapTo`""
     }
 
