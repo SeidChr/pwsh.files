@@ -4,3 +4,5 @@
 . $PSScriptRoot\functions\profile.ps1
 . $PSScriptRoot\functions\utility.ps1
 . $PSScriptRoot\functions\git.ps1
+. $PSScriptRoot\functions\nestedShell.ps1
+
