@@ -1,4 +1,3 @@
-
 function Start-NestedShell {
     param(
         [ScriptBlock]$command,
@@ -12,24 +11,103 @@ function Start-NestedShell {
         } else {
             . $exe -NoProfile -NoExit -NoLogo -Command $command 
         }
-    }
-    else {
+    } else {
         . $exe -NoProfile -NoExit -NoLogo
     }
 }
 
 function Start-Profile {
-    param( $path = $profile )
+    param( 
+        [string]$path = $profile
+    )
     Start-NestedShell `
-        -command { param($path); . $path } `
-        -arguments $path
+        -arguments $path `
+        -command { 
+            param($path)
+            . $path
+        }
+}
+
+function Get-LocalProfilePath {
+    param($location = (Get-Location), $profileId = "default")
+    Join-Path $location ".pwsh" "$profileId.ps1"
+}
+
+# Recurse up the path, return possible profile locations on the way
+# Locations will be in reverse order and beginning with the current user-profile
+function Find-LocalProfilePath {
+    param(
+        $location = (Get-Location),
+        $profileId = "default",
+        [switch] $noFallback
+    )
+
+    # recurse up in the path
+    function Get-ProfileLocations { 
+        while ($location) { 
+            Get-LocalProfilePath `
+                -location $location `
+                -profileId $profileId
+
+            $location = $location | Split-Path -Parent
+        }
+        if (-not($noFallback)) {
+            # standard profile at last
+            $profile
+        }
+    }
+
+    Get-ProfileLocations `
+        | Where-Object { Test-Path $_ } `
+        | Select-Object -First 1
+}
+
+function New-LocalProfile {
+    param(
+        $location = (Get-Location),
+        $profileId = "default",
+        $tag = $profileId,
+        $message = "Local Profile `"$profileId`"",
+        [switch] $PassThru
+    )
+
+    $path = Get-LocalProfilePath `
+        -location $location `
+        -profileId $profileId
+
+    if (-not(Test-Path $path)) {
+        New-Item -Path $path -ItemType File -Force
+        Set-Content -Path $path -Value @"
+. `$profile
+Write-Host '$message'
+`$originalPrompt=`$function:prompt
+function prompt { (. `$originalPrompt '$tag') }
+"@
+    }
+
+    $path
 }
 
 function Start-LocalShell {
-    Start-Profile "$PSScriptRoot/localProfile.ps1"
+    param($profileId = "default")
+    Start-Profile `
+        -path (Find-LocalProfilePath -profileId $profileId)
+}
+
+function Edit-LocalProfile {
+    param(
+        $location = (Get-Location),
+        $profileId = "default"
+    )
+
+    $path = Find-LocalProfilePath -location $location -profileId $profileId -noFallback
+
+    if ($path) {
+        & code $path
+    } else {
+        Write-Error "No local profile found. Create one using `"New-LocalProfile`""
+    }
 }
 
 Set-Alias -Name psh -Value Start-NestedShell
-# folder shell / local shell
-Set-Alias -Name fsh -Value Start-LocalShell
 Set-Alias -Name lsh -Value Start-LocalShell
