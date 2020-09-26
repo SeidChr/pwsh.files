@@ -1,5 +1,6 @@
 . $PSScriptRoot/functions.ps1
 . $PSScriptRoot/prompt.ps1
+. $PSScriptRoot/nested/shell.ps1
 
 Write-Host PWSH $($psversiontable.PSEdition) $($psversiontable.PSVersion)
 

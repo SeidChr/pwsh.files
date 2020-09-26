@@ -4,7 +4,9 @@ function Get-LastWriteTime {
         [string] $path = "."
     )
 
-    Get-ChildItem -Directory $path -Recurse -Filter $filter | % { $_.LastWriteTimeUtc } | Sort-Object -Descending -Top 1
+    Get-ChildItem -Directory $path -Recurse -Filter $filter `
+        | ForEach-Object { $_.LastWriteTimeUtc } `
+        | Sort-Object -Descending -Top 1
     #Get-ChildItem $path -Recurse -Filter $filter | % { $_.LastWriteTimeUtc } | Measure -Maximum
 }
 
