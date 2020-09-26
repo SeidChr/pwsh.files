@@ -112,3 +112,23 @@ function Confirm-Windows {
         Throw "Cannot confirm windows envoronment. Environment is Windows: $IsWindows, is Linux: $IsLinux, is Mac: $IsMacOS"
     }
 }
+
+function Get-ShellNestingLevel {
+    $currentProcess = Get-Process -Id $pid
+    $currentProcessPath = $currentProcess.Path
+    $nestingLevel = 0
+
+    while ($true) {
+        $parentProcess = $currentProcess.Parent;
+
+        if ($parentProcess -and ($parentProcess.Path -eq $currentProcessPath)) {
+            $nestingLevel++;
+        } else {
+            break
+        }
+
+        $currentProcess = $parentProcess
+    }
+
+    $nestingLevel
+}
