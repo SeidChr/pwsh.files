@@ -41,17 +41,20 @@ function Get-DockerShell {
         [Alias("mappedFolderPath")]
         $mapFrom,
 
-        $mapTo = "project"
+        $mapTo = "project",
+
+        [Alias("w")]
+        [Alias("wd")]
+        [Alias("location")]
+        $workingDirectory
     )
 
     Start-Docker -nomsg
 
-    $entrypointArgument = "";
+    $entrypointArgument = ""
     $mappingArgument = ""
+    $workingDirectoryArgument = ""
 
-    if (-not ($mapTo.StartsWith("/"))) {
-        $mapTo = "/" + $mapTo
-    }
 
     $image = switch ($image) {
         ".netsdk" { "mcr.microsoft.com/dotnet/core/sdk"; break }
@@ -65,15 +68,27 @@ function Get-DockerShell {
         $entrypointArgument = "--entrypoint $entrypoint";
     }
 
-    if ($mapFrom) {
-        if (-not ($mapTo.StartsWith("/"))) {
-            $mapTo = "/" + $mapTo;
-        }
-
-        $mappingArgument = "-v `"$(Resolve-Path $mapFrom):$mapTo`" -w `"$mapTo`""
+    if ($mapTo -and -not ($mapTo.StartsWith("/"))) {
+        $mapTo = "/" + $mapTo;
     }
 
-    $cmd = "docker run -it --rm $mappingArgument $entrypointArgument $image";
+    if ($workingDirectory -and -not ($workingDirectory.StartsWith("/"))) {
+        $workingDirectory = "/" + $workingDirectory;
+    }
+
+    if ($mapFrom) {
+        if (!$workingDirectory -and $mapTo) {
+            $workingDirectory = $mapTo
+        }
+
+        $mappingArgument = "-v `"$(Resolve-Path $mapFrom):$mapTo`""
+    }
+
+    if ($workingDirectory) {
+        $workingDirectoryArgument = "-w `"$workingDirectory`""
+    }
+
+    $cmd = "docker run -it --rm $mappingArgument $workingDirectoryArgument $entrypointArgument $image";
     Write-Host "Command: " $cmd
 
     Invoke-Expression $cmd
