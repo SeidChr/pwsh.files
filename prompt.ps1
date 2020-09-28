@@ -14,10 +14,13 @@ function prompt {
         $leaf = Split-Path -Leaf $locationPath
         $parent = Split-Path -Parent $locationPath
 
-        $parentShort = $parent.Replace($homePath, "~")
+        if ($parent) {
+            $parentShort = $parent.Replace($homePath, "~").TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 
-        Write-Host $parentShort -NoNewline -ForegroundColor Blue
-        Write-Host "$([System.IO.Path]::DirectorySeparatorChar)" -NoNewline -ForegroundColor Red
+            Write-Host $parentShort -NoNewline -ForegroundColor Blue
+            Write-Host "$([System.IO.Path]::DirectorySeparatorChar)" -NoNewline -ForegroundColor Red
+        }
+
         Write-Host $leaf -ForegroundColor Green
     }
 
