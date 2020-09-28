@@ -17,7 +17,7 @@ function prompt {
         if ($parent) {
             $parentShort = $parent.Replace($homePath, "~").TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 
-            Write-Host $parentShort -NoNewline -ForegroundColor Blue
+            Write-Host $parentShort -NoNewline -ForegroundColor DarkCyan
             Write-Host "$([System.IO.Path]::DirectorySeparatorChar)" -NoNewline -ForegroundColor Red
         }
 
