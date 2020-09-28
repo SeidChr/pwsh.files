@@ -1,4 +1,8 @@
 . $PSScriptRoot/functions.ps1
+. $PSScriptRoot/nested/shell.ps1
+
+$global:shellNestingLevel = Get-ShellNestingLevel
+
 . $PSScriptRoot/prompt.ps1
 
 Write-Host PWSH $($psversiontable.PSEdition) $($psversiontable.PSVersion)

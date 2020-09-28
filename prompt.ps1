@@ -1,17 +1,11 @@
 function prompt {
+    param($tag = "")
     $homePath = (Resolve-Path ~).ToString()
     $locationPath = (Get-Location).ToString()
+    $nestedPrefix = ">" * $global:shellNestingLevel
 
-    #Write-Host $homePath.GetType() $locationPath.GetType() ($homePath -ieq $locationPath)
-
-    #(Get-Date -UFormat '%y/%m/%d %R').Tostring()
-        
-    # wont change vscode name
-    #$Host.UI.RawUI.WindowTitle = $leaf
-
-    # empty line before each prompt
     Write-Host
-    Write-Host "> " -NoNewline -ForegroundColor Red
+    Write-Host ($nestedPrefix + $tag + "> ") -NoNewline -ForegroundColor Red
 
     if ($homePath -ieq $locationPath) {
         Write-Host "~ " -NoNewline -ForegroundColor Green
