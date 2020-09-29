@@ -66,3 +66,15 @@ fi
         Write-Host Created hook $(Resolve-Path $internalHook -Relative) pointing to $(Resolve-Path $targetPath -Relative)
     }
 }
+
+function Test-GitClean {
+    param($Path = (Get-Location))
+    $statusString = (& git  --git-dir="$(join-path $Path .git)" status -z) `
+        | Out-String
+    !($statusString)
+}
+
+function Test-GitDirty {
+    param($Path = (Get-Location))
+    !(Test-GitClean -Path $Path)
+}
