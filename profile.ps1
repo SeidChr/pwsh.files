@@ -6,6 +6,9 @@ $global:shellNestingLevel = Get-ShellNestingLevel
 . $PSScriptRoot/prompt.ps1
 
 Write-Host PWSH $($psversiontable.PSEdition) $($psversiontable.PSVersion)
+if (Test-GitDirty -Path $PSScriptRoot) {
+    Write-Host "Your PS-Profile has uncommitted local Changes!" -ForegroundColor Red
+}
 
 # allow calling scripts without '.\' prefix
 #$env:PATH += [System.IO.Path]::PathSeparator + "."
