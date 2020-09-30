@@ -4,8 +4,10 @@ function prompt {
     $locationPath = (Get-Location).ToString()
     $nestedPrefix = ">" * $global:shellNestingLevel
 
+    $exitCodePrefix = if ($LASTEXITCODE) { [string]$LASTEXITCODE }
+
     Write-Host
-    Write-Host ($nestedPrefix + $tag + "> ") -NoNewline -ForegroundColor Red
+    Write-Host ($exitCodePrefix + $nestedPrefix + $tag + "> ") -NoNewline -ForegroundColor Red
 
     if ($homePath -ieq $locationPath) {
         Write-Host "~ " -NoNewline -ForegroundColor Green
