@@ -69,8 +69,9 @@ fi
 
 function Test-GitClean {
     param($Path = (Get-Location))
-    $statusString = (& git  --git-dir="$(join-path $Path .git)" status -z) `
-        | Out-String
+    $command = "git -C `"$Path`" status -z"
+    # Write-Host $command
+    $statusString = Invoke-Expression $command | Out-String
     !($statusString)
 }
 
