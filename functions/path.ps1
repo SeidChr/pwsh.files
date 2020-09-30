@@ -37,7 +37,7 @@ function Add-Path {
 
     $currentPathValues = Get-Path
     if ($currentPathValues -cNotContains $value) {
-        $newPath = if ($prefix) { $value + $currentPathValues } else { $currentPathValues + $value }
+        $newPath = if ($prefix) { (,$value) + $currentPathValues } else { $currentPathValues + $value }
         $env:PATH = $newPath -join [System.IO.Path]::PathSeparator
     }
 }
