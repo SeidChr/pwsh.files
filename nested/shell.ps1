@@ -112,15 +112,25 @@ function Edit-LocalProfile {
 Set-Alias -Name psh -Value Start-NestedShell
 Set-Alias -Name lsh -Value Start-LocalShell
 
-function Initialize-VSCodeProfile
-{
+function Get-VsCodeProfileLocation {
+    param($Path = (Get-Location))
+    Join-Path $path ".vscode" "psprofile.ps1"
+}
+
+function Read-VsCodeLocalProfile {
+    param($Path = (Get-Location))
+    $vsCodeProfilePath = Get-VsCodeProfileLocation $Path
+    if (Test-Path $vsCodeProfilePath) {
+        . $vsCodeProfilePath
+    }
+}
+
+function Initialize-VSCodeProfile {
+    param($Path = (Get-Location))
     $global:IsVsCode = $true
     # "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
     # "terminal.integrated.shellArgs.windows": "-NoLogo -Interactive -NoExit -Command \"Initialize-VSCodeProfile\"",
 
     Write-Host "VsCode Shell"
-    $vsCodeProfilePath = Join-Path (Get-Location) ".vscode" "psprofile.ps1"
-    if (Test-Path $vsCodeProfilePath) {
-        . $vsCodeProfilePath
-    }
+    Read-VsCodeLocalProfile $Path
 }
