@@ -132,3 +132,12 @@ function Get-ShellNestingLevel {
 
     $nestingLevel
 }
+
+function Request-Module {
+    param([string]$moduleName)
+    If (-not (Get-Module -ErrorAction Ignore -ListAvailable $moduleName)) {
+        Install-Module $moduleName -ErrorAction Stop
+    }
+
+    Import-Module -ErrorAction Stop $moduleName
+}
