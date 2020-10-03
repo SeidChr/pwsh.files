@@ -90,6 +90,18 @@ git commit-tree "$@";
     & git filter-branch -f --commit-filter $command head
 }
 
+function Edit-GitConfig {
+    param([switch] $Global)
+
+    $Path = if ($Global) {
+        Join-Path "~" ".gitconfig"
+    } else {
+        Join-Path "." ".git" "config"
+    }
+
+    code $Path
+}
+
 function Test-GitClean {
     param($Path = (Get-Location))
     $command = "git -C `"$Path`" status -z"
