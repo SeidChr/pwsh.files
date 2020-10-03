@@ -118,19 +118,19 @@ function Get-VsCodeProfileLocation {
 }
 
 function Read-VsCodeLocalProfile {
-    param($Path = (Get-Location))
-    $vsCodeProfilePath = Get-VsCodeProfileLocation $Path
-    if (Test-Path $vsCodeProfilePath) {
-        . $vsCodeProfilePath
+    param($local:Path = (Get-Location))
+    $local:vsCodeProfilePath = Get-VsCodeProfileLocation $local:Path
+    if (Test-Path $local:vsCodeProfilePath) {
+        . $local:vsCodeProfilePath
     }
 }
 
 function Initialize-VSCodeProfile {
-    param($Path = (Get-Location))
+    param($local:Path = (Get-Location))
     $global:IsVsCode = $true
     # "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
-    # "terminal.integrated.shellArgs.windows": "-NoLogo -Interactive -NoExit -Command \"Initialize-VSCodeProfile\"",
+    # "terminal.integrated.shellArgs.windows": "-NoLogo -Interactive -NoExit -Command \". Initialize-VSCodeProfile\"",
 
     Write-Host "VsCode Shell"
-    Read-VsCodeLocalProfile $Path
+    . Read-VsCodeLocalProfile $local:Path
 }

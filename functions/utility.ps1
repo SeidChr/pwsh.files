@@ -147,7 +147,7 @@ function Get-EnumValues {
     param([string]$enum)
 
     $enumValues = @{}
-    [enum]::getvalues([type]$enum) `
+    [enum]::GetValues([type]$enum) `
         | ForEach-Object { 
             $enumValues.add($_, $_.value__)
         }
@@ -156,6 +156,8 @@ function Get-EnumValues {
 }
 
 function Select-Option {
+    # https://social.technet.microsoft.com/wiki/contents/articles/24030.powershell-demo-prompt-for-choice.aspx
+    # Select-Option "Programm Extermination" "Quit Or Go On?" "&Continue","&Exterminate" 0
     param(
         [string] $Caption,
         [string] $Message,
@@ -167,4 +169,3 @@ function Select-Option {
     $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
 }
 
-# Select-Option "Programm Extermination" "Quit Or Go On?" "&Continue","&Exterminate" 0
