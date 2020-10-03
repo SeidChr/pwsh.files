@@ -4,6 +4,8 @@ function prompt {
     $locationPath = (Get-Location).ToString()
     $nestedPrefix = ">" * $global:shellNestingLevel
 
+    $status = if (Get-Command PROMPTSTATUS) { PROMPTSTATUS }
+
     $exitCodePrefix = if ($LASTEXITCODE) { [string]$LASTEXITCODE }
 
     Write-Host
@@ -24,6 +26,10 @@ function prompt {
         }
 
         Write-Host $leaf -ForegroundColor Green
+    }
+
+    if ($status) {
+        Write-Host $status -NoNewline -ForegroundColor Red
     }
 
     Write-Host "$" -NoNewline -ForegroundColor DarkGray
