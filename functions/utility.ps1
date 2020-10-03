@@ -165,7 +165,7 @@ function Select-Option {
         [int] $Default = 0
     )
 
-    $Selection = $Choices | % { new-object System.Management.Automation.Host.ChoiceDescription $_ }
+    $Selection = $Choices | ForEach-Object { new-object System.Management.Automation.Host.ChoiceDescription $_ }
     $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
 }
 
