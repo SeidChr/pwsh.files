@@ -141,3 +141,30 @@ function Request-Module {
 
     Import-Module -ErrorAction Stop $moduleName
 }
+
+function Get-EnumValues {
+    # get-enumValues -enum "System.Diagnostics.Eventing.Reader.StandardEventLevel"
+    param([string]$enum)
+
+    $enumValues = @{}
+    [enum]::getvalues([type]$enum) `
+        | ForEach-Object { 
+            $enumValues.add($_, $_.value__)
+        }
+
+    $enumValues
+}
+
+function Select-Option {
+    param(
+        [string] $Caption,
+        [string] $Message,
+        [string[]] $Choices,
+        [int] $Default = 0
+    )
+
+    $Selection = $Choices | % { new-object System.Management.Automation.Host.ChoiceDescription $_ }
+    $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
+}
+
+# Select-Option "Programm Extermination" "Quit Or Go On?" "&Continue","&Exterminate" 0
