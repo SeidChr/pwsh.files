@@ -1,23 +1,38 @@
 function Show-Window {
+    # https://github.com/PowerShell/PowerShell/blob/master/src/Microsoft.PowerShell.ConsoleHost/host/msh/ProgressPane.cs
+    param([string] $message, [switch]$noPadding)
+
     $rawUi = $Host.UI.RawUI
     $bufferSize = $rawUi.BufferSize
-    $fg = $host.UI.RawUI.ForegroundColor
-    $bg = $host.UI.RawUI.BackgroundColor
+
+    # https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshostrawuserinterface.newbuffercellarray?view=powershellsdk-7.0.0
+
+    [string[]] $message = if ($noPadding) { 
+        ,$message
+     } else {
+        "  " + $message + "  ", "  " + $message + "  ", "  " + $message + "  "
+    } 
+
     $bufferCellArray = $rawUi.NewBufferCellArray(
-        "This is a Test", 
+        $message, 
         [ConsoleColor]::Black, 
         [ConsoleColor]::White
     )
 
     $rows = $bufferCellArray.GetLength(0);
     $cols = $bufferCellArray.GetLength(1);
-    # $coordinates = [System.Management.Automation.Host.Coordinates]::new(0,0)
 
-    $location = $rawUi.WindowPosition
+    # centered box
+    $x = [int](($bufferSize.Width / 2) - ($cols / 2))
+    $y = [int](($bufferSize.Height / 2) - ($rows / 2))
+
+    $location = [System.Management.Automation.Host.Coordinates]::new($x,$y)
+
+    #$location = $rawUi.WindowPosition
     $savedCursor = $rawUi.CursorPosition;
     
-    $location.X = 0;
-    $location.Y = [Math]::Min($location.Y + 2, $bufferSize.Height);
+    #$location.X = 0;
+    #$location.Y = [Math]::Min($location.Y + 2, $bufferSize.Height);
 
     $savedRegion = $rawUi.GetBufferContents(
         [System.Management.Automation.Host.Rectangle]::new(
@@ -28,6 +43,13 @@ function Show-Window {
         )
     )
 
-    $rawUi.SetBufferContents($location, $bufferCellArray);
+    $rawUi.SetBufferContents($location, $bufferCellArray)
+
+    Start-Sleep -Seconds 5
+
+    $rawUi.SetBufferContents($location, $savedRegion)
+
+    $rawUi.CursorPosition = $savedCursor
+
 }
-# Show-Window
+Show-Window "this is a test"
