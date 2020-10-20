@@ -169,3 +169,35 @@ function Select-Option {
     $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
 }
 
+function Measure-Website {
+    param (
+        [string] $Url,
+        [int] $Sleep = 5,
+        [int] $AlarmThresholdMs = 500,
+        [switch] $Alarm,
+        [switch] $PassThru
+    )
+    $ProgressPreference = 'SilentlyContinue';
+    while ($true) {
+        $ms = Measure-Command { Invoke-WebRequest $url } `
+            | Select-Object -ExpandProperty TotalMilliseconds
+
+        $result = [PSCustomObject]@{
+            Date = Get-Date
+            Ms = [Math]::Abs($ms)
+            Bar = "#" * ($ms / 10)
+        }
+
+        if ($PassThru) {
+            $result
+        } else {
+            "" + $result.Date + "   " + "{0:000000}" -f $result.Ms + "   " + $result.Bar
+        }
+
+        if ($alarm -and ($ms -gt $alarmThresholdMs)) {
+            [console]::beep(2000, 100)
+        }
+
+        Start-Sleep -Seconds 5
+    }
+}
