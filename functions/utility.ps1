@@ -200,7 +200,7 @@ function Measure-Website {
             Measured            = $ms
             Threshold           = $ThresholdMs
             ThresholdReached    = $ms -gt $ThresholdMs
-            ThreaholdPercentage = $percentage
+            ThresholdPercentage = $percentage
             Percentage          = [Math]::Min($percentage, 100)
             Url                 = $Url
         }
@@ -220,7 +220,7 @@ function Measure-Website {
 
                 Write-Progress `
                     -Activity "Measure Website" `
-                    -Status "Response Time: $($result.Measured) ms" `
+                    -Status ("Response Time: {0} ms ({1:0.00} % of {2} ms)" -f $result.Measured, $result.ThresholdPercentage, $result.Threshold) `
                     -PercentComplete $result.Percentage `
                     -CurrentOperation $Url
 
