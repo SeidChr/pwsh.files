@@ -173,7 +173,9 @@ function Measure-Website {
     param (
         [string] $Url,
         [int] $Sleep = 5,
-        [int] $AlarmThresholdMs = 500,
+        [Alias("AlarmThresholdMs")]
+        [Alias("Threshold")]
+        [int] $ThresholdMs = 500,
         [switch] $Alarm,
         [switch] $PassThru,
         [switch] $Progress
@@ -190,46 +192,64 @@ function Measure-Website {
             } `
             | Select-Object -ExpandProperty TotalMilliseconds
 
+        $distance = " " * 3
+        $percentage = ($ms / $ThresholdMs) * 100
+
         $result = [PSCustomObject]@{
-            Date = Get-Date
-            Ms = $ms
+            Date                = Get-Date
+            Measured            = $ms
+            Threshold           = $ThresholdMs
+            ThresholdReached    = $ms -gt $ThresholdMs
+            ThreaholdPercentage = $percentage
+            Percentage          = [Math]::Min($percentage, 100)
+            Url                 = $Url
         }
 
-        $distance = " " * 3
-        $reachedLimit = $ms -gt $alarmThresholdMs;
-
-        if ($alarm -and $reachedLimit) {
+        if ($alarm -and $result.ThresholdReached) {
             [console]::beep(2000, 100)
         }
 
         if ($PassThru) {
             $result
-        } elseif ($Progress) {
-            $maxResponseTimeMs = $AlarmThresholdMs
-            $percentage = [Math]::Min(($result.Ms / $maxResponseTimeMs) * 100, 100)
-            Write-Progress -Activity "Measure Website" -Status "Response Time: $($result.Ms) ms" -PercentComplete $percentage -CurrentOperation $Url
-            if ($reachedLimit) {
-                Write-Host ($result.Date.ToString() + $distance + ("{0,6:0}" -f [Math]::Abs($result.Ms))) -ForegroundColor Red
-            }
         } else {
-            $suffix = ""
+            if ($Progress) {
+                $progressColorBackup = $host.PrivateData.ProgressBackgroundColor
+                if ($result.ThresholdReached) {
+                    $host.PrivateData.ProgressBackgroundColor = "red"
+                }
 
-            $defaultFgColor = $host.UI.RawUI.ForegroundColor
-            $msColor = if ($reachedLimit) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
-            $barColor = if ($reachedLimit) { [ConsoleColor]::Red } else { $defaultFgColor }
-            $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Ms)
+                Write-Progress `
+                    -Activity "Measure Website" `
+                    -Status "Response Time: $($result.Measured) ms" `
+                    -PercentComplete $result.Percentage `
+                    -CurrentOperation $Url
 
-            Write-Host ($result.Date.ToString() + $distance) -NoNewline
-            Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
-            $barSegments = $ms / 10
-            $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
-            if ($barSegments -gt $barMaxSegments) {
-                $suffix = "…"
+                $host.PrivateData.ProgressBackgroundColor = $progressColorBackup
+
+                if ($result.ThresholdReached) {
+                    Write-Host ($result.Date.ToString() + $distance + ("{0,6:0}" -f [Math]::Abs($result.Measured))) -ForegroundColor Red
+                }
+            } else {
+                $suffix = ""
+
+                $defaultFgColor = $host.UI.RawUI.ForegroundColor
+                $msColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
+                $barColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { $defaultFgColor }
+                $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Measured)
+
+                Write-Host ($result.Date.ToString() + $distance) -NoNewline
+                Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
+                
+                $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
+                $barSegments = ($barMaxSegments/100) * $result.Percentage #$ms / 10
+                if ($barSegments -gt $barMaxSegments) {
+                    $suffix = "…"
+                }
+
+                $barSegments = [Math]::Min($barSegments, $barMaxSegments)
+                $bar = ("#" * $barSegments) + $suffix;
+                Write-Host $bar -ForegroundColor $barColor
             }
-
-            $barSegments = [Math]::Min($barSegments, $barMaxSegments)
-            $bar = ("#" * $barSegments) + $suffix;
-            Write-Host $bar -ForegroundColor $barColor
         }
 
         Start-Sleep -Seconds 5
