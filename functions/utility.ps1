@@ -179,23 +179,30 @@ function Measure-Website {
     )
     $ProgressPreference = 'SilentlyContinue';
     while ($true) {
-        $ms = Measure-Command { Invoke-WebRequest $url } `
+        $ms = Measure-Command { try { Invoke-WebRequest $url } catch {} } `
             | Select-Object -ExpandProperty TotalMilliseconds
 
         $result = [PSCustomObject]@{
             Date = Get-Date
-            Ms = [Math]::Abs($ms)
-            Bar = "#" * ($ms / 10)
+            Ms = $ms
+        }
+
+        if ($alarm -and ($ms -gt $alarmThresholdMs)) {
+            [console]::beep(2000, 100)
         }
 
         if ($PassThru) {
             $result
         } else {
-            "" + $result.Date + "   " + "{0:000000}" -f $result.Ms + "   " + $result.Bar
-        }
-
-        if ($alarm -and ($ms -gt $alarmThresholdMs)) {
-            [console]::beep(2000, 100)
+            $distance = " " * 3
+            Write-Host ($result.Date.ToString() + $distance) -NoNewline
+            $defaultFgColor = $host.UI.RawUI.ForegroundColor
+            $msColor = if ($ms -gt $AlarmThresholdMs) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
+            $barColor = if ($ms -gt $AlarmThresholdMs) { [ConsoleColor]::Red } else { $defaultFgColor }
+            $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Ms)
+            Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
+            $bar = ("#" * [Math]::Min(($ms / 10), $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X));
+            Write-Host $bar -ForegroundColor $barColor
         }
 
         Start-Sleep -Seconds 5
