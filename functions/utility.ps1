@@ -175,11 +175,19 @@ function Measure-Website {
         [int] $Sleep = 5,
         [int] $AlarmThresholdMs = 500,
         [switch] $Alarm,
-        [switch] $PassThru
+        [switch] $PassThru,
+        [switch] $Progress
     )
-    $ProgressPreference = 'SilentlyContinue';
+    
     while ($true) {
-        $ms = Measure-Command { try { Invoke-WebRequest $url } catch {} } `
+        $ms = Measure-Command { 
+                try {
+                    $progressBackup = $ProgressPreference
+                    $ProgressPreference = 'SilentlyContinue'
+                    Invoke-WebRequest $url
+                    $ProgressPreference = $progressBackup
+                } catch {} 
+            } `
             | Select-Object -ExpandProperty TotalMilliseconds
 
         $result = [PSCustomObject]@{
@@ -187,21 +195,40 @@ function Measure-Website {
             Ms = $ms
         }
 
-        if ($alarm -and ($ms -gt $alarmThresholdMs)) {
+        $distance = " " * 3
+        $reachedLimit = $ms -gt $alarmThresholdMs;
+
+        if ($alarm -and $reachedLimit) {
             [console]::beep(2000, 100)
         }
 
         if ($PassThru) {
             $result
+        } elseif ($Progress) {
+            $maxResponseTimeMs = $AlarmThresholdMs
+            $percentage = [Math]::Min(($result.Ms / $maxResponseTimeMs) * 100, 100)
+            Write-Progress -Activity "Measure Website" -Status "Response Time: $($result.Ms) ms" -PercentComplete $percentage -CurrentOperation $Url
+            if ($reachedLimit) {
+                Write-Host ($result.Date.ToString() + $distance + ("{0,6:0}" -f [Math]::Abs($result.Ms))) -ForegroundColor Red
+            }
         } else {
-            $distance = " " * 3
-            Write-Host ($result.Date.ToString() + $distance) -NoNewline
+            $suffix = ""
+
             $defaultFgColor = $host.UI.RawUI.ForegroundColor
-            $msColor = if ($ms -gt $AlarmThresholdMs) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
-            $barColor = if ($ms -gt $AlarmThresholdMs) { [ConsoleColor]::Red } else { $defaultFgColor }
+            $msColor = if ($reachedLimit) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
+            $barColor = if ($reachedLimit) { [ConsoleColor]::Red } else { $defaultFgColor }
             $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Ms)
+
+            Write-Host ($result.Date.ToString() + $distance) -NoNewline
             Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
-            $bar = ("#" * [Math]::Min(($ms / 10), $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X));
+            $barSegments = $ms / 10
+            $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
+            if ($barSegments -gt $barMaxSegments) {
+                $suffix = "…"
+            }
+
+            $barSegments = [Math]::Min($barSegments, $barMaxSegments)
+            $bar = ("#" * $barSegments) + $suffix;
             Write-Host $bar -ForegroundColor $barColor
         }
 
