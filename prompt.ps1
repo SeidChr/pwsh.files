@@ -4,7 +4,7 @@ function prompt {
     $locationPath = (Get-Location).ToString()
     $nestedPrefix = ">" * $global:shellNestingLevel
 
-    $status = if (Get-Command PROMPTSTATUS) { PROMPTSTATUS }
+    $status = if (Test-Path function:PROMPTSTATUS) { PROMPTSTATUS }
 
     $exitCodePrefix = if ($LASTEXITCODE) { [string]$LASTEXITCODE }
 
