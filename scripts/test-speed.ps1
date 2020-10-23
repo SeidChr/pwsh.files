@@ -148,7 +148,6 @@ function Measure-PostRequest {
 
     if ($block) {
         $stopwatch.Start()
-        #$result = $client.PostAsync($url, $content).GetAwaiter().GetResult()
         $result = $client.SendAsync($request).GetAwaiter().GetResult()
         $stopwatch.Stop()
     } else {
