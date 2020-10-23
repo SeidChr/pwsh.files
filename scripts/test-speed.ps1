@@ -60,7 +60,7 @@ $myIp = Invoke-RestMethod -Uri "http://ifconfig.me/ip"
 # as          : AS3209 Vodafone GmbH
 # query       : 31.16.1.157
 $myIpInfo = Invoke-RestMethod -Uri "http://ip-api.com/json/$myIp"
-Write-Host $myIpInfo
+# Write-Host $myIpInfo
 $nearestServers = $servers `
 | ForEach-Object {
     $_ | Add-Member `
@@ -101,6 +101,8 @@ function Get-RandomBytes {
     [byte[]](get-random -Count $Bytes -Maximum 256)
 }
 
+$bestServer
+
 $uploadMb = 1
 $uploadBytes = ($uploadMb * 1024 * 1024)
 
@@ -124,3 +126,51 @@ Write-Host "MBps:" ($uploadMb / $uploadSeconds)
 Write-Host "Bps:" ($uploadBytes / $uploadSeconds)
 Write-Host "bps:" ($uploadBits / $uploadSeconds)
 Write-Host "Mbps:" (($uploadMb * 8) / $uploadSeconds)
+
+function Measure-PostRequest {
+    param(
+        [string] $Url,
+        [byte[]] $Bytes,
+        [switch] $Block
+    )
+
+    $content = [Net.Http.ByteArrayContent]::new($bytes);
+    $version = $PSVersionTable.PSEdition + "-" + $PSVersionTable.PSVersion
+    $userAgent = "Mozilla/5.0 Powershell/$version Test-Speed/0.1"
+    
+    $client = [Net.Http.HttpClient]::new()
+    $client.DefaultRequestHeaders.Add("User-Agent", $userAgent);
+    $stopwatch = [Diagnostics.Stopwatch]::new()
+    $result = $null;
+
+    $request = [Net.Http.HttpRequestMessage]::new([Net.Http.HttpMethod]::Post, $Url)
+    $request.Content = $content;
+
+    if ($block) {
+        $stopwatch.Start()
+        #$result = $client.PostAsync($url, $content).GetAwaiter().GetResult()
+        $result = $client.SendAsync($request).GetAwaiter().GetResult()
+        $stopwatch.Stop()
+    } else {
+        $stopwatch.Start()
+        $task = $client.SendAsync($request)
+        while (-not $task.AsyncWaitHandle.WaitOne(200)) { }
+        $result = $task.GetAwaiter().GetResult()
+        $stopwatch.Stop()
+    }
+
+    [PSCustomObject]@{
+        Response = $result
+        Milliseconds = $stopwatch.ElapsedMilliseconds
+    }
+}
+
+# using the c# class has almost the same performance. 
+# both methods wont measure values below ~30 ms for a single byte
+# powershell however, w. measure-command and invoke-rest, is remarkibly
+# slower with the lowest measured value being ~110 ms
+
+# $id = get-random
+# $code = (Get-Content "RequestHelper.cs" -Raw) -replace "class RequestHelper", "class RequestHelper$id"
+# Add-Type -TypeDefinition $code -Language CSharp	
+# $requestHelper = Invoke-Expression "[RequestHelper$id]::new()"
