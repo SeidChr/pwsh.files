@@ -75,8 +75,14 @@ function Start-Elevated {
         return
     }
 
-    $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $principal = New-Object Security.Principal.WindowsPrincipal(
+        [Security.Principal.WindowsIdentity]::GetCurrent()
+    )
+
+    $isAdmin = $principal.IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+
     if ($isAdmin) {
         "Already elevated."
     } else {
@@ -114,23 +120,39 @@ function Confirm-Windows {
 }
 
 function Get-ShellNestingLevel {
-    $currentProcess = Get-Process -Id $pid
-    $currentProcessPath = $currentProcess.Path
+    $leafProcess = Get-Process -Id $pid
+    $leafProcessPath = $leafProcess.Path
     $nestingLevel = 0
 
-    while ($true) {
-        $parentProcess = $currentProcess.Parent;
-
-        if ($parentProcess -and ($parentProcess.Path -eq $currentProcessPath)) {
+    $parentProcess = $leafProcess.Parent;
+    while ($parentProcess) {
+        if ($parentProcess.Path -eq $leafProcessPath) {
             $nestingLevel++;
         } else {
             break
         }
 
-        $currentProcess = $parentProcess
+        $parentProcess = $parentProcess.Parent;
     }
 
     $nestingLevel
+}
+
+# <.SYNOPSIS>
+# will return the first process that has not the
+# same executable as the current powershell process
+function Get-CallingProcess {
+    $leafProcess = Get-Process -Id $pid
+    $leafProcessPath = $leafProcess.Path
+
+    $parentProcess = $leafProcess.Parent;
+
+    while ($parentProcess) {
+        if (-not ($parentProcess.Path -eq $leafProcessPath)) {
+            return $parentProcess
+        }
+        $parentProcess = $parentProcess.Parent
+    }
 }
 
 function Request-Module {

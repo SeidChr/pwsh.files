@@ -127,10 +127,12 @@ function Read-VsCodeLocalProfile {
 
 function Initialize-VSCodeProfile {
     param($local:Path = (Get-Location))
-    $global:IsVsCode = $true
-    # "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
-    # "terminal.integrated.shellArgs.windows": "-NoLogo -Interactive -NoExit -Command \". Initialize-VSCodeProfile\"",
 
-    Write-Host "VsCode Shell"
+    Set-Variable -Name IsVsCode -Value $true -Scope Global
     . Read-VsCodeLocalProfile $local:Path
+}
+
+function Test-VsCode {
+    $callingProcess = Get-CallingProcess
+    $callingProcess -and ($callingProcess.ProcessName -eq "Code")
 }

@@ -3,6 +3,10 @@
 
 $global:shellNestingLevel = Get-ShellNestingLevel
 
+if (Test-VsCode) {
+    . Initialize-VSCodeProfile
+}
+
 . $PSScriptRoot/prompt.ps1
 
 Write-Host PWSH $($psversiontable.PSEdition) $($psversiontable.PSVersion)
