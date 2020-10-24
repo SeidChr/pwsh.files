@@ -199,6 +199,7 @@ function Measure-Website {
         [Alias("Threshold")]
         [int] $ThresholdMs = 500,
         [switch] $Alarm,
+        [int] $AlarmFrequency = 2000,
         [switch] $PassThru,
         [switch] $Progress
     )
@@ -227,8 +228,8 @@ function Measure-Website {
             Url                 = $Url
         }
 
-        if ($alarm -and $result.ThresholdReached) {
-            [console]::beep(2000, 100)
+        if ($Alarm -and $result.ThresholdReached) {
+            [Console]::Beep($AlarmFrequency, 100)
         }
 
         if ($PassThru) {
@@ -275,5 +276,26 @@ function Measure-Website {
         }
 
         Start-Sleep -Seconds 5
+    }
+}
+
+function Import-ScriptsAsFunctions {
+    param (
+        [string] $Path 
+    )
+
+    Get-ChildItem -Path $Path `
+    | ForEach-Object { 
+        $name = $_.FullName | Split-Path -LeafBase
+        Write-Host Reading Method $name
+        $content = Get-Content $_ -Raw
+        #$content
+        $expression = @"
+function $name {
+$content
+}
+"@
+
+        Invoke-Expression $expression
     }
 }

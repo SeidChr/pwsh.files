@@ -1,0 +1,1 @@
+param([string]$Content) [System.Net.Http.StringContent]::new($Content)
