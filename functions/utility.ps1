@@ -211,7 +211,7 @@ function Measure-Website {
                     try {
                         $progressBackup = $ProgressPreference
                         $ProgressPreference = 'SilentlyContinue'
-                        Invoke-WebRequest $urlEntry
+                        Invoke-WebRequest $urlEntry -TimeoutSec ([int](($ThresholdMs*2)/1000))
                         $ProgressPreference = $progressBackup
                     } catch {} 
                 } `
