@@ -52,4 +52,4 @@ function Show-Window {
     $rawUi.CursorPosition = $savedCursor
 
 }
-Show-Window "this is a test"
+#Show-Window "this is a test"
