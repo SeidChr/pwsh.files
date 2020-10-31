@@ -193,7 +193,7 @@ function Select-Option {
 
 function Measure-Website {
     param (
-        [string] $Url,
+        [string[]] $Url,
         [int] $Sleep = 5,
         [Alias("AlarmThresholdMs")]
         [Alias("Threshold")]
@@ -205,73 +205,83 @@ function Measure-Website {
     )
     
     while ($true) {
-        $ms = Measure-Command { 
-                try {
-                    $progressBackup = $ProgressPreference
-                    $ProgressPreference = 'SilentlyContinue'
-                    Invoke-WebRequest $url
-                    $ProgressPreference = $progressBackup
-                } catch {} 
-            } `
-            | Select-Object -ExpandProperty TotalMilliseconds
+        $Url | ForEach-Object {
+            $urlEntry = $_
+            $ms = Measure-Command { 
+                    try {
+                        $progressBackup = $ProgressPreference
+                        $ProgressPreference = 'SilentlyContinue'
+                        Invoke-WebRequest $urlEntry -TimeoutSec ([int](($ThresholdMs*2)/1000))
+                        $ProgressPreference = $progressBackup
+                    } catch {} 
+                } `
+                | Select-Object -ExpandProperty TotalMilliseconds
 
-        $distance = " " * 3
-        $percentage = ($ms / $ThresholdMs) * 100
+            $distance = " " * 3
+            $percentage = ($ms / $ThresholdMs) * 100
 
-        $result = [PSCustomObject]@{
-            Date                = Get-Date
-            Measured            = $ms
-            Threshold           = $ThresholdMs
-            ThresholdReached    = $ms -gt $ThresholdMs
-            ThresholdPercentage = $percentage
-            Percentage          = [Math]::Min($percentage, 100)
-            Url                 = $Url
-        }
+            $result = [PSCustomObject]@{
+                Date                = Get-Date
+                Measured            = $ms
+                Threshold           = $ThresholdMs
+                ThresholdReached    = $ms -gt $ThresholdMs
+                ThresholdPercentage = $percentage
+                Percentage          = [Math]::Min($percentage, 100)
+                Url                 = $urlEntry
+            }
 
-        if ($Alarm -and $result.ThresholdReached) {
-            [Console]::Beep($AlarmFrequency, 100)
-        }
+            if ($Alarm -and $result.ThresholdReached) {
+                [Console]::Beep($AlarmFrequency, 100)
+            }
 
-        if ($PassThru) {
-            $result
-        } else {
-            if ($Progress) {
-                $progressColorBackup = $host.PrivateData.ProgressBackgroundColor
-                if ($result.ThresholdReached) {
-                    $host.PrivateData.ProgressBackgroundColor = "red"
-                }
-
-                Write-Progress `
-                    -Activity "Measure Website" `
-                    -Status ("Response Time: {0} ms ({1:0.00} % of {2} ms)" -f $result.Measured, $result.ThresholdPercentage, $result.Threshold) `
-                    -PercentComplete $result.Percentage `
-                    -CurrentOperation $Url
-
-                $host.PrivateData.ProgressBackgroundColor = $progressColorBackup
-
-                if ($result.ThresholdReached) {
-                    Write-Host ($result.Date.ToString() + $distance + ("{0,6:0}" -f [Math]::Abs($result.Measured))) -ForegroundColor Red
-                }
+            if ($PassThru) {
+                $result
             } else {
-                $suffix = ""
+                if ($Progress) {
+                    $progressColorBackup = $host.PrivateData.ProgressBackgroundColor
+                    if ($result.ThresholdReached) {
+                        $host.PrivateData.ProgressBackgroundColor = "red"
+                    }
 
-                $defaultFgColor = $host.UI.RawUI.ForegroundColor
-                $msColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
-                $barColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { $defaultFgColor }
-                $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Measured)
+                    $progressId = [array]::IndexOf($Url, $urlEntry)
 
-                Write-Host ($result.Date.ToString() + $distance) -NoNewline
-                Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
-                
-                $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
-                $barSegments = ($barMaxSegments/100) * $result.Percentage #$ms / 10
-                if ($barSegments -gt $barMaxSegments) {
-                    $suffix = "…"
+                    Write-Progress `
+                        -Activity "Measure Website" `
+                        -Status ("Response Time: {0} ms ({1:0.00} % of {2} ms)" -f $result.Measured, $result.ThresholdPercentage, $result.Threshold) `
+                        -PercentComplete $result.Percentage `
+                        -CurrentOperation $urlEntry `
+                        -Id $progressId
+
+                    $host.PrivateData.ProgressBackgroundColor = $progressColorBackup
+
+                    if ($result.ThresholdReached) {
+                        $message = $result.Date.ToString() `
+                            + $distance + ("{0,6:0} ms" -f [Math]::Abs($result.Measured)) `
+                            + $distance + $urlEntry
+
+                        Write-Host $message -ForegroundColor Red
+                    }
+                } else {
+                    $suffix = ""
+
+                    $defaultFgColor = $host.UI.RawUI.ForegroundColor
+                    $msColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
+                    $barColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { $defaultFgColor }
+                    $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Measured)
+
+                    Write-Host ($result.Date.ToString() + $distance) -NoNewline
+                    Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
+                    
+                    $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
+                    $barSegments = ($barMaxSegments/100) * $result.Percentage #$ms / 10
+                    if ($barSegments -gt $barMaxSegments) {
+                        $suffix = "…"
+                    }
+
+                    $barSegments = [Math]::Min($barSegments, $barMaxSegments)
+                    $bar = ("#" * $barSegments) + $suffix;
+                    Write-Host $bar -ForegroundColor $barColor
                 }
-
-                $barSegments = [Math]::Min($barSegments, $barMaxSegments)
-                $bar = ("#" * $barSegments) + $suffix;
-                Write-Host $bar -ForegroundColor $barColor
             }
         }
 

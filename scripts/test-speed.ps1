@@ -49,9 +49,9 @@ $bestServer = $nearestServers | ForEach-Object {
 } | Sort-Object -Property avglatency -Top 1
 
 $bestServer
-
+$mibi = 1024 * 2024
 $uploadMb = $packageSizeMb
-$uploadBytes = ($uploadMb * 1024 * 1024)
+$uploadBytes = $uploadMb * $mibi
 
 $content = (Get-HttpBytesContent (Get-RandomBytes $uploadBytes))
 $url = "$($bestServer.url)?x=$unixTime.0"
@@ -64,11 +64,11 @@ $bitCount = $byteCount * 8
     | Measure-Object -AllStats -Property Milliseconds `
     | ForEach-Object {
         [pscustomobject] @{
-            MaxBytePs = $byteCount / ($_.Minimum / 1000)
-            MinBytePs = $byteCount / ($_.Maximum / 1000)
-            AvgBytePs = $byteCount / ($_.Average / 1000) 
-            MaxBitPs = $bitCount / ($_.Minimum / 1000)
-            MinBitPs = $bitCount / ($_.Maximum / 1000)
-            AvgBitPs = $bitCount / ($_.Average / 1000) 
+            MaxMBytePs = $byteCount / ($_.Minimum / 1000) / $mibi
+            MinMBytePs = $byteCount / ($_.Maximum / 1000) / $mibi
+            AvgMBytePs = $byteCount / ($_.Average / 1000) / $mibi
+            MaxMBitPs = $bitCount / ($_.Minimum / 1000) / $mibi
+            MinMBitPs = $bitCount / ($_.Maximum / 1000) / $mibi
+            AvgMBitPs = $bitCount / ($_.Average / 1000) / $mibi
         }
     }
