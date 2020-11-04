@@ -1,4 +1,5 @@
 # https://github.com/sivel/speedtest-cli/blob/master/speedtest.py
+# https://www.speedtest.net/speedtest-config.php
 
 param ([int] $packageSizeMb = 1)
 
