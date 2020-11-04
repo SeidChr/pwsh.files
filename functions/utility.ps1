@@ -19,7 +19,7 @@ function Write-JobOutput {
     $colorCount = $colors.Length
     $jobs | ForEach-Object { $i = 1 } {
         $fgColor = $colors[($i - 1) % $colorCount]
-        $out = $_ | Receive-Job
+        $out = $_ | Receive-Job -ErrorAction Continue
         $out = $out -split [System.Environment]::NewLine
         $out | ForEach-Object {
             Write-Host "$i> "-NoNewline -ForegroundColor $fgColor
