@@ -1,13 +1,38 @@
 function Get-LastWriteTime {
     param(
-        [string] $filter = "",
-        [string] $path = "."
+        [string] $Filter = "",
+        [string] $Path = "."
     )
 
-    Get-ChildItem -Directory $path -Recurse -Filter $filter `
-        | ForEach-Object { $_.LastWriteTimeUtc } `
-        | Sort-Object -Descending -Top 1
-    #Get-ChildItem $path -Recurse -Filter $filter | % { $_.LastWriteTimeUtc } | Measure -Maximum
+    $Path = Resolve-Path $Path
+    Write-Host $path
+
+    Get-ChildItem -Path $Path -Recurse `
+    | ForEach-Object { $_.LastWriteTimeUtc } `
+    | Sort-Object -Descending -Top 1
+}
+
+function Register-LastWriteTime {
+    param(
+        [string] $Key,
+        [string] $Filter = "",
+        [string] $Path = "."
+    )
+
+    $lastWriteTime = Get-LastWriteTime -Filter $Filter -Path $Path
+    [Environment]::SetEnvironmentVariable("LASTCHANGES_$Key", $lastWriteTime, "Process")
+}
+
+function Get-HasChanges {
+    param(
+        [string] $Key,
+        [string] $Path = ".",
+        [string] $Filter = ""
+    )
+
+    $lastWriteTimeDisk = Get-LastWriteTime -Filter $Filter -Path $Path
+    $lastWriteTimeEnv = [Environment]::GetEnvironmentVariable("LASTCHANGES_$Key", "Process")
+    if ($lastWriteTimeEnv -ne $lastWriteTimeDisk) { $true } else { $false }
 }
 
 # . $profile; $block = { 1..20 | % { $wait = (Get-Random -Maximum 3 -Minimum 0); Start-Sleep $wait ; Write-Output "$_ $wait" }}; Start-Parallel $block,$block,$block,$block;
