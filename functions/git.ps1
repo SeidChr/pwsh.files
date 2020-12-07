@@ -63,7 +63,7 @@ fi
         $internalHook =  Join-Path $internalGitHooksFolder $_
 
         Set-Content -Path $internalHook -Value $body
-        Write-Host Created hook $(Resolve-Path $internalHook -Relative) pointing to $(Resolve-Path $targetPath -Relative)
+        Write-Host Created hook $(Resolve-Path $internalHook -Relative) pointing to $(Join-Path (Resolve-Path $hooksFolder -Relative) "$_.ps1")
     }
 }
 
