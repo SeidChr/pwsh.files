@@ -3,15 +3,15 @@ param([switch]$NoCheckout)
 
 $account = "SeidChr"
 $repository = "pwsh.files"
-$destination = "~\.pwsh"
+$destination = Join-Path ~ .pwsh
 $githubBaseUrl = "https://github.com/$account/$repository"
 
 if ($NoCheckout) {
     $version = "master"
 
     $url = "$githubBaseUrl/archive/$version.zip"
-    $downloadPath = "$env:TEMP\dotfiles\$version.zip"
-    $unzipPath = "$env:TEMP\dotfiles\$version"
+    $downloadPath = Join-Path $env:TEMP dotfiles "$version.zip"
+    $unzipPath = Join-Path $env:TEMP dotfiles $version
 
     New-Item -ItemType Directory -Force -Path (Split-Path $downloadPath -Parent)
     Invoke-WebRequest -Uri $url -OutFile $downloadPath
@@ -27,12 +27,16 @@ if ($NoCheckout) {
 
     # iwr -Uri 'https://raw.githubusercontent.com/SeidChr/pwsh.files/master/setup/install.ps1' | iexup/install.ps1' | iex
 } else {
-    $command = ". $destination\profile.ps1"
+    $profilePath = Join-Path $destination profile.ps1
+    $command = ". $profilePath"
     & git clone "$githubBaseUrl.git" $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($destination)
-    if (!(Get-Content $profile | Out-String).Contains($command)) {
-        Add-Content $profile -Value $command
+    if (-not (Test-Path $PROFILE)) {
+        New-Item $PROFILE -Force
+    }
+    if (!(Get-Content $PROFILE | Out-String).Contains($command)) {
+        Add-Content $PROFILE -Value $command
     }
 }
 
 # load profile
-. $profile
+. $PROFILE
