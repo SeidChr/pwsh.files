@@ -4,7 +4,7 @@ function Get-Path {
     $pathParts `
         | Where-Object { ![string]::IsNullOrWhiteSpace($_) } `
         | ForEach-Object {
-        $newPart = $_.Trim("/").Trim("\")
+        $newPart = $_.TrimEnd('\/\\')
         if ($cleanedPath -cNotContains $newPart) {
             $cleanedPath.Add($newPart)
         }
