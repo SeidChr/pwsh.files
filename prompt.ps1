@@ -14,13 +14,19 @@ function prompt {
     if ($homePath -ieq $locationPath) {
         Write-Host "~ " -NoNewline -ForegroundColor Green
         Write-Host "($homePath)" -ForegroundColor DarkGray
-    } else {
-        $leaf = Split-Path -Leaf $locationPath
-        $parent = Split-Path -Parent $locationPath
+    }
+    else {
+        if ((-not $IsWindows) -and ($locationPath -eq "/")) {
+            $leaf = "/"
+            $parent = ""
+        }
+        else {
+            $leaf = Split-Path -Leaf $locationPath
+            $parent = Split-Path -Parent $locationPath
+        }
 
         if ($parent) {
             $parentShort = $parent.Replace($homePath, "~").TrimEnd([System.IO.Path]::DirectorySeparatorChar)
-
             Write-Host $parentShort -NoNewline -ForegroundColor DarkCyan
             Write-Host "$([System.IO.Path]::DirectorySeparatorChar)" -NoNewline -ForegroundColor Red
         }
