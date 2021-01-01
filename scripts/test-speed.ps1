@@ -4,7 +4,7 @@
 param ([int] $packageSizeMb = 1)
 
 # load functions
-. Import-ScriptsAsFunctions ( Join-Path $PSScriptRoot "functions" )
+Require -Function "*" -From ( Join-Path $PSScriptRoot "functions" )
 
 $urls = 'www.speedtest.net/speedtest-servers-static.php',
 'c.speedtest.net/speedtest-servers-static.php',

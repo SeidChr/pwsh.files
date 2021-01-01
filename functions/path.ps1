@@ -22,13 +22,13 @@ function Repair-Path {
 function Add-Path {
     param(
         # A path value to be added.
-        [string] $value,
+        [string] $Value,
 
         # Will add the entry to the beginning of the path, instead of the end.
-        [switch] $prefix,
+        [switch] $Prefix,
 
         # Will resolve the $value to an existing path, before adding it.
-        [switch] $resolve
+        [switch] $Resolve
     )
 
     if ($resolve) {

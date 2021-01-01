@@ -314,23 +314,21 @@ function Measure-Website {
     }
 }
 
-function Import-ScriptsAsFunctions {
-    param (
-        [string] $Path 
+function Require {
+    [cmdletbinding()]
+    param(
+        [string[]] $Function = "*", 
+        [string] $From = "scripts"
     )
 
-    Get-ChildItem -Path $Path `
-    | ForEach-Object { 
-        $name = $_.FullName | Split-Path -LeafBase
-        Write-Host Reading Method $name
-        $content = Get-Content $_ -Raw
-        #$content
-        $expression = @"
-function $name {
-$content
+    $Function `
+        | ForEach-Object { Get-ChildItem $From -Filter "$_.ps1" } `
+        | ForEach-Object {
+            $functionName = Split-Path -LeafBase $_
+            $body = Get-Content $_ -Raw
+            #Set-Variable -Name "function:$functionName" -Value "{ $body }"
+            Invoke-Expression "function global:$functionName { $body }";
+            Write-Verbose "Function $functionName added to scope"
+        }
 }
-"@
 
-        Invoke-Expression $expression
-    }
-}
