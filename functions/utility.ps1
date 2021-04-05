@@ -47,7 +47,7 @@ function Write-JobOutput {
         $out = $_ | Receive-Job -ErrorAction Continue
         $out = $out -split [System.Environment]::NewLine
         $out | ForEach-Object {
-            Write-Host "$i> "-NoNewline -ForegroundColor $fgColor
+            Write-Host "$i> " -NoNewline -ForegroundColor $fgColor
             Write-Host $_
         }
         
