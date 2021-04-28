@@ -364,12 +364,12 @@ function Test-MatchAny {
     )
     process {
         foreach ($reg in $regex) {
-            #Write-Host "Testing wether '$_' matches '$reg'"
             if ($_ -match $reg) {
-                #Write-Host "Yes it does ?!"  
-                return $entity
+                return $true
             }
         }
+
+        return $false
     }
 }
 
@@ -385,10 +385,45 @@ function Test-MatchAll {
     process {
         foreach ($reg in $regex) {
             if ($_ -notmatch $reg) {
-                return
+                return $false
             }
+        }
 
-            return $entity
+        return $true
+    }
+}
+
+function Select-MatchAny {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $entity,
+
+        [Parameter(Mandatory, Position = 0)]
+        [string[]]
+        $regex
+    )
+
+    process {
+        if ($_ | Test-MatchAny $regex) {
+            $_
+        }
+    }
+}
+
+function Select-MatchAll {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $entity,
+
+        [Parameter(Mandatory, Position = 0)]
+        [string[]]
+        $regex
+    )
+
+    process {
+        if ($_ | Test-MatchAll $regex)
+        {
+            $_
         }
     }
 }
