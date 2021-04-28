@@ -352,3 +352,43 @@ function Close {
 
     $module.NewBoundScriptBlock($s)
 }
+
+function Test-MatchAny {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $entity,
+
+        [Parameter(Mandatory, Position = 0)]
+        [string[]]
+        $regex
+    )
+    process {
+        foreach ($reg in $regex) {
+            #Write-Host "Testing wether '$_' matches '$reg'"
+            if ($_ -match $reg) {
+                #Write-Host "Yes it does ?!"  
+                return $entity
+            }
+        }
+    }
+}
+
+function Test-MatchAll {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $entity,
+
+        [Parameter(Mandatory, Position = 0)]
+        [string[]]
+        $regex
+    )
+    process {
+        foreach ($reg in $regex) {
+            if ($_ -notmatch $reg) {
+                return
+            }
+
+            return $entity
+        }
+    }
+}
