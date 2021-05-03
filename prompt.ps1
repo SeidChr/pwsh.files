@@ -12,8 +12,12 @@ function prompt {
     Write-Host ($exitCodePrefix + $nestedPrefix + $tag + "> ") -NoNewline -ForegroundColor Red
 
     if ($homePath -ieq $locationPath) {
-        Write-Host "~ " -NoNewline -ForegroundColor Green
-        Write-Host "($homePath)" -ForegroundColor DarkGray
+        if ($global:sharing) {
+            Write-Host "~" -ForegroundColor Green
+        } else {
+            Write-Host "~ " -NoNewline -ForegroundColor Green
+            Write-Host "($homePath)" -ForegroundColor DarkGray
+        }
     }
     else {
         if ((-not $IsWindows) -and ($locationPath -eq "/")) {

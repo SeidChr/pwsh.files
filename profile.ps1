@@ -2,6 +2,7 @@
 . $PSScriptRoot/nested/shell.ps1
 
 $global:shellNestingLevel = Get-ShellNestingLevel
+$global:sharing = $false
 
 if (Test-VsCode) {
     . Initialize-VSCodeProfile
