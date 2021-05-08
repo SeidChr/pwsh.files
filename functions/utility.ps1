@@ -427,3 +427,26 @@ function Select-MatchAll {
         }
     }
 }
+
+function ConvertTo-QueryString {
+    param (
+        [Parameter(ValueFromPipeline)]
+        $hashtable
+    )
+
+    $body = $hashtable.GetEnumerator() `
+    | ForEach-Object {
+        if ($_.Value -is [array]) {
+            $name = $_.Key
+            $_.Value | ForEach-Object { @{Key = $name; Value = $_ } }
+        } else {
+            $_
+        }
+    } `
+    | ForEach-Object { $_.Key + "=" + [System.Web.HttpUtility]::UrlEncode($_.Value, [System.Text.Encoding]::UTF8) } `
+    | Join-String -Separator "&"
+
+    if ($body) {
+        return "?" + $body
+    }
+}
