@@ -450,3 +450,22 @@ function ConvertTo-QueryString {
         return "?" + $body
     }
 }
+
+function Set-Member {
+     param(
+         [string] $Name,
+         [object] $Value,
+         [Parameter(ValueFromPipeline)]
+         [object] $InputObject
+     )
+     process {
+         $prop = $_.psobject.Properties[$Name]
+         if ($prop) {
+             $prop.Value = $Value
+         } else {
+             $prop = [psnoteproperty]::new($Name, $Value)
+             $InputObject.psobject.Properties.Add($prop) 
+         }
+         return $_                                                      
+     }
+ }
