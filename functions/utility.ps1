@@ -469,3 +469,10 @@ function Set-Member {
          return $_                                                      
      }
  }
+
+function Start-Sharing {
+    $global:sharing = $true
+    Clear-Host
+}
+
+Set-Alias -Name Enable-Sharing -Value Start-Sharing
