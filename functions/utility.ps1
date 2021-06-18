@@ -479,12 +479,16 @@ function Start-Sharing {
 Set-Alias -Name Property -Value Expand-Property
 function Expand-Property {
     param([string[]] $Name)
+    begin {
+        $Name = foreach ($_ in $Name) {
+            $_.Split('.') 
+        } 
+    }
     process {
         $current = $_
         foreach ($propertyName in $Name) {
-            $current = $current | Select-Object -ExpandProperty $propertyName
+            $current = $current.$propertyName
         }
         $current
     }
 }
-
