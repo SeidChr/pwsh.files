@@ -470,9 +470,21 @@ function Set-Member {
      }
  }
 
+Set-Alias -Name Enable-Sharing -Value Start-Sharing
 function Start-Sharing {
     $global:sharing = $true
     Clear-Host
 }
 
-Set-Alias -Name Enable-Sharing -Value Start-Sharing
+Set-Alias -Name Property -Value Expand-Property
+function Expand-Property {
+    param([string[]] $Name)
+    process {
+        $current = $_
+        foreach ($propertyName in $Name) {
+            $current = $current | Select-Object -ExpandProperty $propertyName
+        }
+        $current
+    }
+}
+
