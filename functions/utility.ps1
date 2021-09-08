@@ -492,3 +492,28 @@ function Expand-Property {
         $current
     }
 }
+
+# .SYNOPSIS
+# Splits sets of items into multiple groups by number
+function Group-Items {
+    param (
+        [Parameter(ValueFromPipeline)]
+        $Item,
+        [int] $GroupSize
+    )
+
+    begin {
+        $joined = @() 
+    }
+    end {
+        , $joined 
+    }
+    process {
+        if ($GroupSize -and (($joined.Count + 1) -gt $GroupSize)) {
+            , $joined
+            $joined = @()
+        }
+
+        $joined += $Item
+    }
+}
