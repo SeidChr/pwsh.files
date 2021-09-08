@@ -1,3 +1,12 @@
+function Build-CellArray {
+    [OutputType([System.Management.Automation.Host.BufferCell[, ]])]
+    param([string[]] $Body, [System.ConsoleColor] $ForegroundColor = [System.ConsoleColor]::Black, [System.ConsoleColor] $BackgroundColor = [System.ConsoleColor]::White)
+    Write-Host "Stuff: $($Body.GetType())"
+    $Host.UI.RawUI.NewBufferCellArray([string[]]$Body, $ForegroundColor, $BackgroundColor)
+}
+$bca = Build-CellArray @("moi morn", "du   des")
+$bca.GetLength(1)
+
 function Show-Window {
     # https://github.com/PowerShell/PowerShell/blob/master/src/Microsoft.PowerShell.ConsoleHost/host/msh/ProgressPane.cs
     param([string] $message, [switch]$noPadding)
@@ -13,11 +22,8 @@ function Show-Window {
         "  " + $message + "  ", "  " + $message + "  ", "  " + $message + "  "
     } 
 
-    $bufferCellArray = $rawUi.NewBufferCellArray(
-        $message, 
-        [ConsoleColor]::Black, 
-        [ConsoleColor]::White
-    )
+    # https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshostrawuserinterface.newbuffercellarray?view=powershellsdk-7.0.0
+    $bufferCellArray = Build-CellArray $message [ConsoleColor]::Black [ConsoleColor]::White
 
     $rows = $bufferCellArray.GetLength(0);
     $cols = $bufferCellArray.GetLength(1);
