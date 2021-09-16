@@ -80,8 +80,8 @@ function Edit-GitCommits {
 
     # https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables
     $command = @"
-GIT_COMMITTER_EMAIL='$mail';
-GIT_AUTHOR_EMAIL='$mail';
+GIT_COMMITTER_EMAIL='$email';
+GIT_AUTHOR_EMAIL='$email';
 GIT_COMMITTER_NAME='$name';
 GIT_AUTHOR_NAME='$name';
 git commit-tree "$@";
