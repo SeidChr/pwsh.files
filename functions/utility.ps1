@@ -473,6 +473,7 @@ function Set-Member {
 Set-Alias -Name Enable-Sharing -Value Start-Sharing
 function Start-Sharing {
     $global:sharing = $true
+    Set-Location ~
     Clear-Host
 }
 
@@ -515,5 +516,25 @@ function Group-Items {
         }
 
         $joined += $Item
+    }
+}
+
+# .Synopsis
+# Allows my to easily collect the last commands result while also writing it to console.
+# Its basically an alias for 'Tee-Object -Variable' which is not as straight forward
+# when you want to catch list elements.
+function _ { 
+    begin { 
+        $pipe = { Set-Variable -Name LASTRESULT -Scope 1 }.GetSteppablePipeline()
+        $pipe.Begin($true) 
+    }
+
+    process {
+        $pipe.Process($_)
+        Write-Output -InputObject $_
+    }
+
+    end {
+        $pipe.End()
     }
 }
