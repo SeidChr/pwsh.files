@@ -539,6 +539,15 @@ function _ {
     }
 }
 
+# .Synopsis
+# Allows to echo the pipeline element to the host, so it can be read by the user
+function Tee-Host { 
+    process {
+        Write-Host $_
+        Write-Output $_
+    }
+}
+
 # wtf powershell... why dont you have this?
 function Join-String {
     begin {
