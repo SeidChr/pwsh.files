@@ -488,3 +488,9 @@ function Expand-Property {
     }
 }
 
+function Get-NextDateOfWeekday {
+    param([DayOfWeek] $DayOfWeek)
+    $today = [DateTime]::Now.Date
+    $daysToAdd = ( 7 - ( ( [int]$today.DayOfWeek + 7 ) - [int]$DayOfWeek ) % 7 )
+    $today.AddDays($daysToAdd)
+}
