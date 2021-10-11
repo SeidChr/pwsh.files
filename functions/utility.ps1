@@ -473,16 +473,22 @@ function Set-Member {
 Set-Alias -Name Enable-Sharing -Value Start-Sharing
 function Start-Sharing {
     $global:sharing = $true
+    Set-Location ~
     Clear-Host
 }
 
 Set-Alias -Name Property -Value Expand-Property
 function Expand-Property {
     param([string[]] $Name)
+    begin {
+        $Name = foreach ($_ in $Name) {
+            $_.Split('.') 
+        } 
+    }
     process {
         $current = $_
         foreach ($propertyName in $Name) {
-            $current = $current | Select-Object -ExpandProperty $propertyName
+            $current = $current.$propertyName
         }
         $current
     }
@@ -493,4 +499,152 @@ function Get-NextDateOfWeekday {
     $today = [DateTime]::Now.Date
     $daysToAdd = ( 7 - ( ( [int]$today.DayOfWeek + 7 ) - [int]$DayOfWeek ) % 7 )
     $today.AddDays($daysToAdd)
+}
+
+# .SYNOPSIS
+# Splits sets of items into multiple groups by number
+function Group-Items {
+    param (
+        [Parameter(ValueFromPipeline)]
+        $Item,
+        [int] $GroupSize
+    )
+
+    begin {
+        $joined = @() 
+    }
+    end {
+        , $joined 
+    }
+    process {
+        if ($GroupSize -and (($joined.Count + 1) -gt $GroupSize)) {
+            , $joined
+            $joined = @()
+        }
+
+        $joined += $Item
+    }
+}
+
+# .Synopsis
+# Allows my to easily collect the last commands result while also writing it to console.
+# Its basically an alias for 'Tee-Object -Variable' which is not as straight forward
+# when you want to catch list elements.
+function _ { 
+    begin { 
+        $pipe = { Set-Variable -Name LASTRESULT -Scope 1 }.GetSteppablePipeline()
+        $pipe.Begin($true) 
+    }
+
+    process {
+        $pipe.Process($_)
+        Write-Output -InputObject $_
+    }
+
+    end {
+        $pipe.End()
+    }
+}
+
+# .Synopsis
+# Allows to echo the pipeline element to the host, so it can be read by the user
+function Tee-Host { 
+    process {
+        Write-Host $_
+        Write-Output $_
+    }
+}
+
+# wtf powershell... why dont you have this?
+function Join-String {
+    begin {
+        $sb = [System.Text.StringBuilder]::new() 
+    } 
+    process {
+        $sb.Append($_) | Out-Null 
+    } 
+    end {
+        $sb.ToString() 
+    } 
+}
+
+# https://powershell.one/tricks/performance/pipeline
+function Where-ObjectFast {
+    param
+    (
+        [ScriptBlock]
+        $FilterScript
+    )
+  
+    begin {
+        # construct a hard-coded anonymous simple function:
+        $code = @"
+& {
+  process { 
+    if ($FilterScript) 
+    { `$_ }
+  }
+}
+"@
+        # turn code into a scriptblock and invoke it
+        # via a steppable pipeline so we can feed in data
+        # as it comes in via the pipeline:
+        $pip = [ScriptBlock]::Create($code).GetSteppablePipeline()
+        $pip.Begin($true)
+    }
+    process {
+        # forward incoming pipeline data to the custom scriptblock:
+        $pip.Process($_)
+    }
+    end {
+        $pip.End()
+    }
+}
+
+# https://powershell.one/tricks/performance/pipeline
+function Foreach-ObjectFast {
+    param
+    (
+        [ScriptBlock]
+        $Process,
+    
+        [ScriptBlock]
+        $Begin,
+    
+        [ScriptBlock]
+        $End
+    )
+  
+    begin {
+        # construct a hard-coded anonymous simple function from
+        # the submitted scriptblocks:
+        $code = @"
+& {
+  begin
+  {
+    $Begin
+  }
+  process
+  {
+    $Process
+  }
+  end
+  {
+    $End
+  }
+}
+"@
+        # turn code into a scriptblock and invoke it
+        # via a steppable pipeline so we can feed in data
+        # as it comes in via the pipeline:
+        $pip = [ScriptBlock]::Create($code).GetSteppablePipeline()
+        $pip.Begin($true)
+    }
+    process {
+        # forward incoming pipeline data to the custom scriptblock:
+        $pip.Process($_)
+    }
+    end {
+        $pip.End()
+    }
 }
