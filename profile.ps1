@@ -1,5 +1,4 @@
-. $PSScriptRoot/functions.ps1
-. $PSScriptRoot/nested/shell.ps1
+. $PSScriptRoot/modules.ps1
 
 $global:shellNestingLevel = Get-ShellNestingLevel
 $global:sharing = $false

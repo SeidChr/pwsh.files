@@ -1,100 +1,3 @@
-function Get-LastWriteTime {
-    param(
-        [string] $Filter = "",
-        [string] $Path = "."
-    )
-
-    $Path = Resolve-Path $Path
-    Write-Host $path
-
-    Get-ChildItem -Path $Path -Recurse `
-    | ForEach-Object { $_.LastWriteTimeUtc } `
-    | Sort-Object -Descending -Top 1
-}
-
-function Register-LastWriteTime {
-    param(
-        [string] $Key,
-        [string] $Filter = "",
-        [string] $Path = "."
-    )
-
-    $lastWriteTime = Get-LastWriteTime -Filter $Filter -Path $Path
-    [Environment]::SetEnvironmentVariable("LASTCHANGES_$Key", $lastWriteTime, "Process")
-}
-
-function Get-HasChanges {
-    param(
-        [string] $Key,
-        [string] $Path = ".",
-        [string] $Filter = ""
-    )
-
-    $lastWriteTimeDisk = Get-LastWriteTime -Filter $Filter -Path $Path
-    $lastWriteTimeEnv = [Environment]::GetEnvironmentVariable("LASTCHANGES_$Key", "Process")
-    if ($lastWriteTimeEnv -ne $lastWriteTimeDisk) { $true } else { $false }
-}
-
-# . $profile; $block = { 1..20 | % { $wait = (Get-Random -Maximum 3 -Minimum 0); Start-Sleep $wait ; Write-Output "$_ $wait" }}; Start-Parallel $block,$block,$block,$block;
-function Write-JobOutput {
-    param(
-        $jobs,
-        $colors = @("Blue", "Red", "Cyan", "Green", "Magenta")
-    )
-    $colorCount = $colors.Length
-    $jobs | ForEach-Object { $i = 1 } {
-        $fgColor = $colors[($i - 1) % $colorCount]
-        $out = $_ | Receive-Job -ErrorAction Continue
-        $out = $out -split [System.Environment]::NewLine
-        $out | ForEach-Object {
-            Write-Host "$i> " -NoNewline -ForegroundColor $fgColor
-            Write-Host $_
-        }
-        
-        $i++
-    }
-}
-
-function Start-Parallel {
-    param(
-        [ScriptBlock[]]
-        [Parameter(Position = 0)]
-        $ScriptBlock,
-
-        [Object[]]
-        [Alias("arguments")]
-        $parameters,
-
-        [Alias("sleep")]
-        $pollSleepMilliseconds = 250,
-
-        [Alias("init")]
-        [scriptblock] $initializationScript,
-
-        [Alias("input")]
-        [Object]$inputObject
-    )
-
-    $jobs = $ScriptBlock | ForEach-Object { 
-        Start-Job -ScriptBlock $_ -InitializationScript $initializationScript -ArgumentList $parameters -InputObject $input
-    }
-
-    try {
-        while (($jobs | Where-Object { $_.State -ieq "running" } | Measure-Object).Count -gt 0) {
-            Write-JobOutput -jobs $jobs
-            # process needs some time to breathe
-            Start-Sleep -Milliseconds $pollSleepMilliseconds
-        }
-    }
-    finally {
-        Write-Host "Stopping Parallel Jobs ..."
-        $jobs | Stop-Job
-        Write-JobOutput -jobs $jobs
-        $jobs | Remove-Job -Force
-        Write-Host "Stopped all jobs."
-    }
-}
-
 function Start-Elevated {
     if (!$IsWindows) {
         return
@@ -111,7 +14,7 @@ function Start-Elevated {
     if ($isAdmin) {
         "Already elevated."
     } else {
-        $powserShellExecutable = (Get-Process -id $pid | Get-Item).FullName
+        $powserShellExecutable = (Get-Process -Id $pid | Get-Item).FullName
         $workingDirectory = Get-Location
 
         Write-Host "Starting Elevated Shell..." -NoNewline
@@ -130,7 +33,7 @@ function Restart-Elevated {
     $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if (!$isAdmin) {
-        $powserShellExecutable = (Get-Process -id $pid | Get-Item).FullName
+        $powserShellExecutable = (Get-Process -Id $pid | Get-Item).FullName
         $workingDirectory = Get-Location
 
         Start-Process -Verb RunAs -FilePath $powserShellExecutable -ArgumentList "`"$script`"" -WorkingDirectory $workingDirectory -Wait
@@ -195,9 +98,9 @@ function Get-EnumValues {
 
     $enumValues = @{}
     [enum]::GetValues([type]$enum) `
-        | ForEach-Object { 
-            $enumValues.add($_, $_.value__)
-        }
+    | ForEach-Object { 
+        $enumValues.add($_, $_.value__)
+    }
 
     $enumValues
 }
@@ -212,7 +115,7 @@ function Select-Option {
         [int] $Default = 0
     )
 
-    $Selection = $Choices | ForEach-Object { new-object System.Management.Automation.Host.ChoiceDescription $_ }
+    $Selection = $Choices | ForEach-Object { New-Object System.Management.Automation.Host.ChoiceDescription $_ }
     $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
 }
 
@@ -233,14 +136,15 @@ function Measure-Website {
         $Url | ForEach-Object {
             $urlEntry = $_
             $ms = Measure-Command { 
-                    try {
-                        $progressBackup = $ProgressPreference
-                        $ProgressPreference = 'SilentlyContinue'
-                        Invoke-WebRequest $urlEntry -TimeoutSec ([int](($ThresholdMs*2)/1000))
-                        $ProgressPreference = $progressBackup
-                    } catch {} 
-                } `
-                | Select-Object -ExpandProperty TotalMilliseconds
+                try {
+                    $progressBackup = $ProgressPreference
+                    $ProgressPreference = 'SilentlyContinue'
+                    Invoke-WebRequest $urlEntry -TimeoutSec ([int](($ThresholdMs * 2) / 1000))
+                    $ProgressPreference = $progressBackup
+                } catch {
+                } 
+            } `
+            | Select-Object -ExpandProperty TotalMilliseconds
 
             $distance = " " * 3
             $percentage = ($ms / $ThresholdMs) * 100
@@ -290,15 +194,23 @@ function Measure-Website {
                     $suffix = ""
 
                     $defaultFgColor = $host.UI.RawUI.ForegroundColor
-                    $msColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { [ConsoleColor]::Green }
-                    $barColor = if ($result.ThresholdReached) { [ConsoleColor]::Red } else { $defaultFgColor }
+                    $msColor = if ($result.ThresholdReached) {
+                        [ConsoleColor]::Red 
+                    } else {
+                        [ConsoleColor]::Green 
+                    }
+                    $barColor = if ($result.ThresholdReached) {
+                        [ConsoleColor]::Red 
+                    } else {
+                        $defaultFgColor 
+                    }
                     $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Measured)
 
                     Write-Host ($result.Date.ToString() + $distance) -NoNewline
                     Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
                     
                     $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
-                    $barSegments = ($barMaxSegments/100) * $result.Percentage #$ms / 10
+                    $barSegments = ($barMaxSegments / 100) * $result.Percentage #$ms / 10
                     if ($barSegments -gt $barMaxSegments) {
                         $suffix = "…"
                     }
@@ -322,14 +234,14 @@ function Require {
     )
 
     $Function `
-        | ForEach-Object { Get-ChildItem $From -Filter "$_.ps1" } `
-        | ForEach-Object {
-            $functionName = Split-Path -LeafBase $_
-            $body = Get-Content $_ -Raw
-            #Set-Variable -Name "function:$functionName" -Value "{ $body }"
-            Invoke-Expression "function global:$functionName { $body }";
-            Write-Verbose "Function $functionName added to scope"
-        }
+    | ForEach-Object { Get-ChildItem $From -Filter "$_.ps1" } `
+    | ForEach-Object {
+        $functionName = Split-Path -LeafBase $_
+        $body = Get-Content $_ -Raw
+        #Set-Variable -Name "function:$functionName" -Value "{ $body }"
+        Invoke-Expression "function global:$functionName { $body }";
+        Write-Verbose "Function $functionName added to scope"
+    }
 }
 
 function Close {
@@ -421,8 +333,7 @@ function Select-MatchAll {
     )
 
     process {
-        if ($_ | Test-MatchAll $regex)
-        {
+        if ($_ | Test-MatchAll $regex) {
             $_
         }
     }
@@ -452,23 +363,23 @@ function ConvertTo-QueryString {
 }
 
 function Set-Member {
-     param(
-         [string] $Name,
-         [object] $Value,
-         [Parameter(ValueFromPipeline)]
-         [object] $InputObject
-     )
-     process {
-         $prop = $_.psobject.Properties[$Name]
-         if ($prop) {
-             $prop.Value = $Value
-         } else {
-             $prop = [psnoteproperty]::new($Name, $Value)
-             $InputObject.psobject.Properties.Add($prop) 
-         }
-         return $_                                                      
-     }
- }
+    param(
+        [string] $Name,
+        [object] $Value,
+        [Parameter(ValueFromPipeline)]
+        [object] $InputObject
+    )
+    process {
+        $prop = $_.psobject.Properties[$Name]
+        if ($prop) {
+            $prop.Value = $Value
+        } else {
+            $prop = [psnoteproperty]::new($Name, $Value)
+            $InputObject.psobject.Properties.Add($prop) 
+        }
+        return $_                                                      
+    }
+}
 
 Set-Alias -Name Enable-Sharing -Value Start-Sharing
 function Start-Sharing {

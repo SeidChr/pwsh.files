@@ -1,16 +1,24 @@
-function Get-Path {
-    $pathParts = $env:PATH -split [System.IO.Path]::PathSeparator
+function Optimize-PathList {
+    param($PathList)
     $cleanedPath = New-Object System.Collections.Generic.List[string]
-    $pathParts `
+    $PathList `
         | Where-Object { ![string]::IsNullOrWhiteSpace($_) } `
         | ForEach-Object {
-        $newPart = $_.TrimEnd('\/\\')
-        if ($cleanedPath -cNotContains $newPart) {
-            $cleanedPath.Add($newPart)
+            $newPart = $_.TrimEnd('\/\\')
+            if ($cleanedPath -cNotContains $newPart) {
+                $cleanedPath.Add($newPart)
+            }
         }
-    }
 
     return $cleanedPath.ToArray()
+}
+
+function Get-Path {
+    Optimize-PathList ($env:PATH -split [System.IO.Path]::PathSeparator)
+}
+
+function Get-ModulePath {
+    Optimize-PathList ($env:PSModulePath -split ";")
 }
 
 function Repair-Path {

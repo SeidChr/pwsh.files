@@ -1,5 +1,8 @@
 function prompt {
-    param($tag = "")
+    param(
+        $tag = ""
+    )
+
     $homePath = (Resolve-Path ~).ToString()
     $locationPath = (Get-Location).ToString()
     $nestedPrefix = ">" * $global:shellNestingLevel
@@ -18,8 +21,7 @@ function prompt {
             Write-Host "~ " -NoNewline -ForegroundColor Green
             Write-Host "($homePath)" -ForegroundColor DarkGray
         }
-    }
-    else {
+    } else {
         if ((-not $IsWindows) -and ($locationPath -eq "/")) {
             $leaf = "/"
             $parent = ""

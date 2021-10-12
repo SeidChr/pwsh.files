@@ -6,7 +6,7 @@ function Add-GitHooks {
         # Clean all existing git hooks (in the git-folder) before updating them. not always required (only when hooks disappeared and you use the -onlyExistingHooks option)
         [switch] $clean,
         # changes the powershell executable which is called by the git hooks (will be called in path)
-        [string] $powershellExecutableName = (get-process -Id $pid).Name,
+        [string] $powershellExecutableName = (Get-Process -Id $pid).Name,
         # where are the powerhell hooks located which git should use
         [string] $projectFolder = (Get-Location).Path,
         [string] $hooksFolder = (Join-Path $projectFolder "githooks")
@@ -60,61 +60,9 @@ if [[ -f "$shTargetPath" ]]; then
     exit `$?
 fi
 "@
-        $internalHook =  Join-Path $internalGitHooksFolder $_
+        $internalHook = Join-Path $internalGitHooksFolder $_
 
         Set-Content -Path $internalHook -Value $body
         Write-Host Created hook $(Resolve-Path $internalHook -Relative) pointing to $(Join-Path (Resolve-Path $hooksFolder -Relative) "$_.ps1")
     }
-}
-
-function Edit-GitCommits {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]
-        $name,
-
-        [Parameter(Mandatory = $true)]
-        [string]
-        $email
-    )
-
-    # https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables
-    $command = @"
-GIT_COMMITTER_EMAIL='$email';
-GIT_AUTHOR_EMAIL='$email';
-GIT_COMMITTER_NAME='$name';
-GIT_AUTHOR_NAME='$name';
-git commit-tree "$@";
-"@
-
-    & git filter-branch -f --commit-filter $command head
-}
-
-function Edit-GitConfig {
-    param([switch] $Global)
-
-    $Path = if ($Global) {
-        Join-Path "~" ".gitconfig"
-    } else {
-        Join-Path "." ".git" "config"
-    }
-
-    code $Path
-}
-
-function Test-GitClean {
-    param($Path = (Get-Location))
-    $command = "git -C `"$Path`" status -z"
-    # Write-Host $command
-
-    $backupExitCode = $global:LASTEXITCODE
-    $statusString = Invoke-Expression $command | Out-String
-    $global:LASTEXITCODE = $backupExitCode
-
-    !($statusString)
-}
-
-function Test-GitDirty {
-    param($Path = (Get-Location))
-    !(Test-GitClean -Path $Path)
 }
