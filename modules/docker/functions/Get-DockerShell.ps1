@@ -23,7 +23,6 @@ $entrypointArgument = ""
 $mappingArgument = ""
 $workingDirectoryArgument = ""
 
-
 $image = switch ($image) {
     ".netsdk" { "mcr.microsoft.com/dotnet/core/sdk"; break }
     ".netasp" { "mcr.microsoft.com/dotnet/core/aspnet"; break }
