@@ -13,9 +13,9 @@ if ($Color) {
         $Color = $Color | ConvertTo-Rgb
     }
 
-    $code = $Color `
-    | ForEach-Object { [string]$_ } `
-    | Join-String -Separator ";"
+    $code = $Color
+        | ForEach-Object { [string]$_ }
+        | Join-String -Separator ";"
 
     "$script:escapeToken[$($Bg ? "48" : "38");2;$($code)m"
 } else {
