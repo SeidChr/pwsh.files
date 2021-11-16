@@ -4,7 +4,7 @@ function Start-NestedShell {
         $arguments
     )
 
-    $exe = (get-process -Id $pid | Select-Object -ExpandProperty Path)
+    $exe = (Get-Process -Id $pid | Select-Object -ExpandProperty Path)
     if ($command) {
         if ($arguments) {
             . $exe -NoProfile -NoExit -NoLogo -Command $command -args $arguments
@@ -67,8 +67,7 @@ function New-LocalProfile {
         $location = (Get-Location),
         $profileId = "default",
         $tag = $profileId,
-        $message = "Local Profile `"$profileId`"",
-        [switch] $PassThru
+        $message = "Local Profile `"$profileId`""
     )
 
     $path = Get-LocalProfilePath `
