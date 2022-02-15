@@ -466,19 +466,6 @@ function Tee-Host {
     }
 }
 
-# wtf powershell... why dont you have this?
-function Join-String {
-    begin {
-        $sb = [System.Text.StringBuilder]::new() 
-    } 
-    process {
-        $sb.Append($_) | Out-Null 
-    } 
-    end {
-        $sb.ToString() 
-    } 
-}
-
 # https://powershell.one/tricks/performance/pipeline
 function Where-ObjectFast {
     param
