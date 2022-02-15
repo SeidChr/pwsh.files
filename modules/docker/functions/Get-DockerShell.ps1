@@ -25,7 +25,7 @@ $workingDirectoryArgument = ""
 
 
 $image = switch ($image) {
-    ".netsdk" { "mcr.microsoft.com/dotnet/core/sdk"; break }
+    ".netsdk" { "mcr.microsoft.com/dotnet/sdk"; break }
     ".netasp" { "mcr.microsoft.com/dotnet/core/aspnet"; break }
     { $_ -in ".net", ".netrt" } { "mcr.microsoft.com/dotnet/core/runtime"; break }
     { $_ -in ".netdeps", ".netrtdeps" } { "mcr.microsoft.com/dotnet/core/runtime-deps"; break }
