@@ -244,6 +244,7 @@ function Require {
     }
 }
 
+# avoids changes on a variable to propagate into closures
 function Close {
     # https://github.com/PowerShell/PowerShell/blob/91e7298fd8101b85b17514dfefa41b20a7276ca4/src/System.Management.Automation/engine/Modules/PSModuleInfo.cs#L1340
     # https://github.com/PowerShell/PowerShell/blob/91e7298fd8101b85b17514dfefa41b20a7276ca4/src/System.Management.Automation/engine/lang/scriptblock.cs#L119
@@ -438,6 +439,85 @@ function Group-Items {
 }
 
 # .Synopsis
+# Allows to execute a script for every x items of a list. Groups them beforehand.
+# $step = 1000
+# $iterations = [Math]::Ceiling(($files.Count / $step))
+# for ($i = 0; $i -lt $iterations; $i++) {
+#     $fewerFiles = $files | Select-Object -Skip ( $i * $step ) -First $step
+#     $Ctx.Load($fewerFiles)
+#     $Ctx.ExecuteQuery();
+# }
+
+function ForEach-Batch {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $Item,
+        [Parameter(Position = 0)]
+        [Alias("Of")]
+        [int] $BatchSize,
+        [Parameter(Position = 1)]
+        [scriptblock] $Action
+    )
+
+    begin {
+        $code = @"
+& {
+  process
+  {
+    $Action
+  }
+}
+"@
+
+        $joined = @()
+        $pip = [ScriptBlock]::Create($code).GetSteppablePipeline()
+        $pip.Begin($true)
+    }
+    end {
+        $pip.Process($joined)
+        $pip.End()
+    }
+    process {
+        if ($BatchSize -and (($joined.Count + 1) -gt $BatchSize)) {
+            $pip.Process($joined)
+            $joined = @()
+        }
+
+        $joined += $Item
+    }
+}
+
+# WIP batching using group-function
+# function ForEach-Batch2 {
+#     param(
+#         [Parameter(ValueFromPipeline)]
+#         $Item,
+#         [Parameter(Position = 0)]
+#         [Alias("Of")]
+#         [int] $BatchSize,
+#         [Parameter(Position = 1)]
+#         [scriptblock] $Action
+#     )
+
+#     begin {
+#         $pip = { Group-Items -GroupSize $BatchSize | & $Action }.GetSteppablePipeline()
+#         $pip.Begin($true)
+#     }
+#     end {
+#         $pip.Process($joined)
+#         $pip.End()
+#     }
+#     process {
+#         if ($BatchSize -and (($joined.Count + 1) -gt $BatchSize)) {
+#             $pip.Process($joined)
+#             $joined = @()
+#         }
+
+#         $joined += $Item
+#     }
+# }
+
+# .Synopsis
 # Allows my to easily collect the last commands result while also writing it to console.
 # Its basically an alias for 'Tee-Object -Variable' which is not as straight forward
 # when you want to catch list elements.
@@ -458,7 +538,8 @@ function _ {
 }
 
 # .Synopsis
-# Allows to echo the pipeline element to the host, so it can be read by the user
+# Allows to echo the pipeline element to the host, so it can be
+# read by the user while passing it to the output stream as well.
 function Tee-Host { 
     process {
         Write-Host $_
@@ -500,7 +581,7 @@ function Where-ObjectFast {
 }
 
 # https://powershell.one/tricks/performance/pipeline
-function Foreach-ObjectFast {
+function ForEach-ObjectFast {
     param
     (
         [ScriptBlock]
