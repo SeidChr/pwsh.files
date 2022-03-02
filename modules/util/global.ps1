@@ -627,3 +627,23 @@ function ForEach-ObjectFast {
         $pip.End()
     }
 }
+
+# .SYNOPSIS
+# Converts a classical cookie string into an hashtable, where every cookie has a key.
+function ConvertFrom-Cookie {
+    param(
+        # Delimiter of key-value-pairs
+        $KvpDelimiter = ';', 
+        # Delimiter of key and value
+        $KvDelimiter = '='
+    )
+
+    process {
+        $result = @{}
+        $_.split($KvpDelimiter) | ForEach-Object -Process {
+            $kvp = $_.trim().split($KvDelimiter)
+            $result.add($kvp[0], $kvp[1])
+        }
+        return $result
+    }
+}
