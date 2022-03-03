@@ -632,18 +632,41 @@ function ForEach-ObjectFast {
 # Converts a classical cookie string into an hashtable, where every cookie has a key.
 function ConvertFrom-Cookie {
     param(
+        [Parameter(ValueFromPipeline)]
+        $InputObject,
+
         # Delimiter of key-value-pairs
-        $KvpDelimiter = ';', 
+        $KvpDelimiter = ';',
+
         # Delimiter of key and value
         $KvDelimiter = '='
     )
 
     process {
         $result = @{}
-        $_.split($KvpDelimiter) | ForEach-Object -Process {
+        $_.split($KvpDelimiter) | ForEach-ObjectFast {
             $kvp = $_.trim().split($KvDelimiter)
             $result.add($kvp[0], $kvp[1])
         }
         return $result
+    }
+}
+
+function ConvertFrom-Regex {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $InputObject,
+
+        [Parameter(Mandatory, Position = 0)]
+        $Regex
+    )
+    process {
+        [regex]::Matches($_, $Regex) | ForEach-ObjectFast {
+            $result = @{}
+            $_.Groups | ForEach-ObjectFast {
+                $result.Add($_.Name, $_.Value)
+            }
+            $result
+        }
     }
 }
