@@ -10,7 +10,6 @@ if (Test-Path $globalPath) {
 if (Test-Path $functionsPath) {
     Get-ChildItem $functionsPath -Filter "*.ps1" | ForEach-Object {
         $name = $(Split-Path -LeafBase $_)
-        . Invoke-Expression "function $name { $(Get-Content $_ -Raw) }";
-        Export-ModuleMember -Function $name
+        . Invoke-Expression "function $name { `n $(Get-Content $_ -Raw) `n }";
     }
 }
