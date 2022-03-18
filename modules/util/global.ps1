@@ -670,3 +670,18 @@ function ConvertFrom-Regex {
         }
     }
 }
+
+function Repeat {
+    param(
+        [Parameter(ValueFromPipeline, Mandatory)]
+        $InputObject,
+
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateRange(2, [long]::MaxValue)]
+        [long] $Times
+    )
+
+    process {
+        [ScriptBlock]::Create("foreach (`$null in 1..$Times) { $_ }").Invoke()
+    }
+}
