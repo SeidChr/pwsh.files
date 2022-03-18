@@ -7,19 +7,29 @@
 # Prinz Albert  4  console          >        Aktiv 
 # 655           36 31c5ce94259d4...          Abhör.
 
+param(
+    [switch]$IndexNames,
+    [int[]]$ColumnSizes
+)
+
 begin {
     $lineNr = 0;
 }
 
 process {
     if ($lineNr -eq 0) {
-        $columns = $_ | ConvertFrom-StringTableHeader
+        $columns = $_ | ConvertFrom-StringTableHeader -ColumnSizes:$ColumnSizes
     } elseif ($columns) {
         [string]$line = $_
         $result = @{}
 
         foreach ($column in $columns) {
-            $result[$column.Label.Trim()] = $line.Substring($column.Start, $column.Length).Trim()
+            $name = $column.Label.Trim()
+            if ($IndexNames -or (-not $name)) { 
+                $name = $column.Index
+            } 
+            # $name
+            $result[$name] = $line.Substring($column.Start, $column.Length).Trim()
         }
 
         [pscustomobject]$result
