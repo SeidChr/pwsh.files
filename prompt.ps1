@@ -3,47 +3,53 @@ function prompt {
         $tag = ""
     )
 
-    $homePath = (Resolve-Path ~).ToString()
+    $darkCyan = Get-VtTextColor "#11A8CD"
+    $red      = Get-VtTextColor "#F14C4C"
+    $green    = Get-VtTextColor "#23D18B"
+    $darkGray = Get-VtTextColor "#666666"
+    $clear    = Get-VtClear
+
+    $homePath     = (Resolve-Path ~).ToString()
     $locationPath = (Get-Location).ToString()
     $nestedPrefix = ">" * $global:shellNestingLevel
 
-    $status = if (Test-Path function:PROMPTSTATUS) { PROMPTSTATUS }
-
     $exitCodePrefix = if ($LASTEXITCODE) { [string]$LASTEXITCODE }
 
-    Write-Host
-    Write-Host ($exitCodePrefix + $nestedPrefix + $tag + "> ") -NoNewline -ForegroundColor Red
+    $prefixPart = "$red$exitCodePrefix$nestedPrefix$tag>$clear "
+    $statusPart = if (Test-Path function:PROMPTSTATUS) { "$red$(PROMPTSTATUS)$clear" }
+    $promptPart = "$darkGray`$$clear " # cursor comes here
 
+    $locationPart = ""
     if ($homePath -ieq $locationPath) {
+        $homePart = "$green~$clear"
         if ($global:sharing) {
-            Write-Host "~" -ForegroundColor Green
+            $locationPart = $homePart
         } else {
-            Write-Host "~ " -NoNewline -ForegroundColor Green
-            Write-Host "($homePath)" -ForegroundColor DarkGray
+            $locationPart = "$homePart $darkGray($homePath)$clear"
         }
     } else {
+        $parentPart = ""
+
         if ((-not $IsWindows) -and ($locationPath -eq "/")) {
             $leaf = "/"
             $parent = ""
-        }
-        else {
+        } else {
             $leaf = Split-Path -Leaf $locationPath
             $parent = Split-Path -Parent $locationPath
         }
 
         if ($parent) {
-            $parentShort = $parent.Replace($homePath, "~").TrimEnd([System.IO.Path]::DirectorySeparatorChar)
-            Write-Host $parentShort -NoNewline -ForegroundColor DarkCyan
-            Write-Host "$([System.IO.Path]::DirectorySeparatorChar)" -NoNewline -ForegroundColor Red
+            $dirSeparator = [System.IO.Path]::DirectorySeparatorChar
+            $parentShort = $parent.Replace($homePath, "~").TrimEnd($dirSeparator)
+            $parentPart = "$darkCyan$parentShort$red$dirSeparator$clear"
         }
 
-        Write-Host $leaf -ForegroundColor Green
+        $locationPart = "$parentPart$green$leaf$clear"
     }
 
-    if ($status) {
-        Write-Host $status -NoNewline -ForegroundColor Red
-    }
+    return @"
 
-    Write-Host "$" -NoNewline -ForegroundColor DarkGray
-    return " "
+$prefixPart$locationPart
+$statusPart$promptPart
+"@
 }
