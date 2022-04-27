@@ -21,7 +21,7 @@ process {
     $stringWriter.ToString()
     
     # clear string writer
-    $null = $stringBuilder.Remove(0, $stringBuilder.Length)
+    $null = $stringBuilder.Clear()
 }
 
 # test: "<test name=`"testname`"><testing/><start>some</start><end>test</end><other/><evenMore/></test>","<test2>bla</test2>" |% {[xml]$_} | ConvertFrom-Xml
