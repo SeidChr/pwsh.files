@@ -1,8 +1,8 @@
 # .Synopsis
 # .Example
-# Write-PingProgress -DelaySeconds 5 -TimeoutSeconds 2 -Target 192.168.0.10, 192.168.0.11
-# Ping 192.168.0.10 [Success: 557ms (28 % of 2000ms)                                                                    ]
-# Ping 192.168.0.11 [Success: 277ms (14 % of 2000ms)                                                                    ]
+# Write-PingLog -DelaySeconds 5 -TimeoutSeconds 2 -Target 192.168.0.10
+# Found Device 192.168.0.10 at 05/08/2022 20:28:10
+# Lost Device 192.168.0.10 at 05/08/2022 20:32:53
 
 param(
     [int]$DelaySeconds = 1,
