@@ -6,8 +6,9 @@
 
 param(
     [int]$DelaySeconds = 1,
-    [int]$TimeoutSeconds = 10,
-    [string[]]$Target
+    [int]$TimeoutSeconds = 1,
+    [string[]]$Target,
+    [switch] $PassThru
 )
 
 $lastState = [bool[]]::new($Target.Count)
@@ -17,8 +18,16 @@ do {
         $index = [array]::indexof($Target, $_.Destination)
         $pingSuccess = $_.Status -eq 0
         if ($lastState[$index] -ne $pingSuccess) {
-            Write-Host "$($pingSuccess ? "Found" : "Lost") Device $($_.Destination) at $(Get-Date)"
             $lastState[$index] = $pingSuccess
+            if ($PassThru) {
+                @{
+                    Status    = $pingSuccess
+                    Target    = "$($_.Destination)"
+                    Timestamp = Get-Date
+                }
+            } else {
+                Write-Host "$($pingSuccess ? "Found" : "Lost") Device $($_.Destination) at $(Get-Date)"
+            }
         }
     }
 
