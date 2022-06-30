@@ -47,6 +47,42 @@ function Confirm-Windows {
     }
 }
 
+function Get-ShellNestingLevel {
+    $leafProcess = Get-Process -Id $pid
+    $leafProcessPath = $leafProcess.Path
+    $nestingLevel = 0
+
+    $parentProcess = $leafProcess.Parent;
+    while ($parentProcess) {
+        if ($parentProcess.Path -eq $leafProcessPath) {
+            $nestingLevel++;
+        } else {
+            break
+        }
+
+        $parentProcess = $parentProcess.Parent;
+    }
+
+    $nestingLevel
+}
+
+# <.SYNOPSIS>
+# will return the first process that has not the
+# same executable as the current powershell process
+function Get-CallingProcess {
+    $leafProcess = Get-Process -Id $pid
+    $leafProcessPath = $leafProcess.Path
+
+    $parentProcess = $leafProcess.Parent;
+
+    while ($parentProcess) {
+        if (-not ($parentProcess.Path -eq $leafProcessPath)) {
+            return $parentProcess
+        }
+        $parentProcess = $parentProcess.Parent
+    }
+}
+
 function Request-Module {
     param([string]$moduleName)
     If (-not (Get-Module -ErrorAction Ignore -ListAvailable $moduleName)) {
@@ -69,6 +105,127 @@ function Get-EnumValues {
     $enumValues
 }
 
+function Select-Option {
+    # https://social.technet.microsoft.com/wiki/contents/articles/24030.powershell-demo-prompt-for-choice.aspx
+    # Select-Option "Programm Extermination" "Quit Or Go On?" "&Continue","&Exterminate" 0
+    param(
+        [string] $Caption,
+        [string] $Message,
+        [string[]] $Choices,
+        [int] $Default = 0
+    )
+
+    $Selection = $Choices | ForEach-Object { New-Object System.Management.Automation.Host.ChoiceDescription $_ }
+    $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
+}
+
+function Measure-Website {
+    param (
+        [string[]] $Url,
+        [int] $Sleep = 5,
+        [Alias("AlarmThresholdMs")]
+        [Alias("Threshold")]
+        [int] $ThresholdMs = 500,
+        [switch] $Alarm,
+        [int] $AlarmFrequency = 2000,
+        [switch] $PassThru,
+        [switch] $Progress
+    )
+    
+    while ($true) {
+        $Url | ForEach-Object {
+            $urlEntry = $_
+            $ms = Measure-Command { 
+                try {
+                    $progressBackup = $ProgressPreference
+                    $ProgressPreference = 'SilentlyContinue'
+                    Invoke-WebRequest $urlEntry -TimeoutSec ([int](($ThresholdMs * 2) / 1000))
+                    $ProgressPreference = $progressBackup
+                } catch {
+                } 
+            } `
+            | Select-Object -ExpandProperty TotalMilliseconds
+
+            $distance = " " * 3
+            $percentage = ($ms / $ThresholdMs) * 100
+
+            $result = [PSCustomObject]@{
+                Date                = Get-Date
+                Measured            = $ms
+                Threshold           = $ThresholdMs
+                ThresholdReached    = $ms -gt $ThresholdMs
+                ThresholdPercentage = $percentage
+                Percentage          = [Math]::Min($percentage, 100)
+                Url                 = $urlEntry
+            }
+
+            if ($Alarm -and $result.ThresholdReached) {
+                [Console]::Beep($AlarmFrequency, 100)
+            }
+
+            if ($PassThru) {
+                $result
+            } else {
+                if ($Progress) {
+                    $progressColorBackup = $host.PrivateData.ProgressBackgroundColor
+                    if ($result.ThresholdReached) {
+                        $host.PrivateData.ProgressBackgroundColor = "red"
+                    }
+
+                    $progressId = [array]::IndexOf($Url, $urlEntry)
+
+                    Write-Progress `
+                        -Activity "Measure Website" `
+                        -Status ("Response Time: {0} ms ({1:0.00} % of {2} ms)" -f $result.Measured, $result.ThresholdPercentage, $result.Threshold) `
+                        -PercentComplete $result.Percentage `
+                        -CurrentOperation $urlEntry `
+                        -Id $progressId
+
+                    $host.PrivateData.ProgressBackgroundColor = $progressColorBackup
+
+                    if ($result.ThresholdReached) {
+                        $message = $result.Date.ToString() `
+                            + $distance + ("{0,6:0} ms" -f [Math]::Abs($result.Measured)) `
+                            + $distance + $urlEntry
+
+                        Write-Host $message -ForegroundColor Red
+                    }
+                } else {
+                    $suffix = ""
+
+                    $defaultFgColor = $host.UI.RawUI.ForegroundColor
+                    $msColor = if ($result.ThresholdReached) {
+                        [ConsoleColor]::Red 
+                    } else {
+                        [ConsoleColor]::Green 
+                    }
+                    $barColor = if ($result.ThresholdReached) {
+                        [ConsoleColor]::Red 
+                    } else {
+                        $defaultFgColor 
+                    }
+                    $formattedMilliseconds = "{0,6:0}" -f [Math]::Abs($result.Measured)
+
+                    Write-Host ($result.Date.ToString() + $distance) -NoNewline
+                    Write-Host ($formattedMilliseconds + $distance) -NoNewline -ForegroundColor $msColor
+                    
+                    $barMaxSegments = $host.UI.RawUI.WindowSize.Width - $host.UI.RawUI.CursorPosition.X - 2;
+                    $barSegments = ($barMaxSegments / 100) * $result.Percentage #$ms / 10
+                    if ($barSegments -gt $barMaxSegments) {
+                        $suffix = "…"
+                    }
+
+                    $barSegments = [Math]::Min($barSegments, $barMaxSegments)
+                    $bar = ("#" * $barSegments) + $suffix;
+                    Write-Host $bar -ForegroundColor $barColor
+                }
+            }
+        }
+
+        Start-Sleep -Seconds 5
+    }
+}
+
 function Require {
     [cmdletbinding()]
     param(
@@ -85,6 +242,28 @@ function Require {
         Invoke-Expression "function global:$functionName { $body }";
         Write-Verbose "Function $functionName added to scope"
     }
+}
+
+# avoids changes on a variable to propagate into closures
+function Close {
+    # https://github.com/PowerShell/PowerShell/blob/91e7298fd8101b85b17514dfefa41b20a7276ca4/src/System.Management.Automation/engine/Modules/PSModuleInfo.cs#L1340
+    # https://github.com/PowerShell/PowerShell/blob/91e7298fd8101b85b17514dfefa41b20a7276ca4/src/System.Management.Automation/engine/lang/scriptblock.cs#L119
+
+    param(
+        [Parameter(ValueFromRemainingArguments, Position = 0)]
+        [Alias("Variables", "Args", "Arguments", "Var", "Vars", "On")]
+        [string[]] $VariableNames,
+        [Parameter(ValueFromPipeline, Mandatory, Position = 1)]
+        [scriptblock] $Script
+    )
+    
+    $module = [psmoduleinfo]::new($true)
+
+    $VariableNames | ForEach-Object {
+        $module.SessionState.PSVariable.Set($_, $(Get-Variable -Name $_).Value)
+    }
+
+    $module.NewBoundScriptBlock($s)
 }
 
 function Test-MatchAny {
@@ -199,7 +378,7 @@ function Set-Member {
             $prop = [psnoteproperty]::new($Name, $Value)
             $InputObject.psobject.Properties.Add($prop) 
         }
-        return $_                                                      
+        return $_
     }
 }
 
@@ -339,17 +518,12 @@ function ForEach-Batch {
 # }
 
 # .Synopsis
-# Collects everything piped through it in the variable "LASTRESULT". 
-# Can be appended on every pipe in order to just collect the result of the last command 
-# so you dont have to assign it into a variable manually.
+# Allows my to easily collect the last commands result while also writing it to console.
 # Its basically an alias for 'Tee-Object -Variable' which is not as straight forward
 # when you want to catch list elements.
-# .Example
-# 
-function _ {
-    param($Name = "LASTRESULT")
+function _ { 
     begin { 
-        $pipe = { Set-Variable -Name $Name -Scope 1 }.GetSteppablePipeline()
+        $pipe = { Set-Variable -Name LASTRESULT -Scope 1 }.GetSteppablePipeline()
         $pipe.Begin($true) 
     }
 
@@ -370,5 +544,144 @@ function Tee-Host {
     process {
         Write-Host $_
         Write-Output $_
+    }
+}
+
+# https://powershell.one/tricks/performance/pipeline
+function Where-ObjectFast {
+    param
+    (
+        [ScriptBlock]
+        $FilterScript
+    )
+  
+    begin {
+        # construct a hard-coded anonymous simple function:
+        $code = @"
+& {
+  process { 
+    if ($FilterScript) 
+    { `$_ }
+  }
+}
+"@
+        # turn code into a scriptblock and invoke it
+        # via a steppable pipeline so we can feed in data
+        # as it comes in via the pipeline:
+        $pip = [ScriptBlock]::Create($code).GetSteppablePipeline()
+        $pip.Begin($true)
+    }
+    process {
+        # forward incoming pipeline data to the custom scriptblock:
+        $pip.Process($_)
+    }
+    end {
+        $pip.End()
+    }
+}
+
+# https://powershell.one/tricks/performance/pipeline
+function ForEach-ObjectFast {
+    param
+    (
+        [ScriptBlock]
+        $Process,
+    
+        [ScriptBlock]
+        $Begin,
+    
+        [ScriptBlock]
+        $End
+    )
+  
+    begin {
+        # construct a hard-coded anonymous simple function from
+        # the submitted scriptblocks:
+        $code = @"
+& {
+  begin
+  {
+    $Begin
+  }
+  process
+  {
+    $Process
+  }
+  end
+  {
+    $End
+  }
+}
+"@
+        # turn code into a scriptblock and invoke it
+        # via a steppable pipeline so we can feed in data
+        # as it comes in via the pipeline:
+        $pip = [ScriptBlock]::Create($code).GetSteppablePipeline()
+        $pip.Begin($true)
+    }
+    process {
+        # forward incoming pipeline data to the custom scriptblock:
+        $pip.Process($_)
+    }
+    end {
+        $pip.End()
+    }
+}
+
+# .SYNOPSIS
+# Converts a classical cookie string into an hashtable, where every cookie has a key.
+function ConvertFrom-Cookie {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $InputObject,
+
+        # Delimiter of key-value-pairs
+        $KvpDelimiter = ';',
+
+        # Delimiter of key and value
+        $KvDelimiter = '='
+    )
+
+    process {
+        $result = @{}
+        $_.split($KvpDelimiter) | ForEach-ObjectFast {
+            $kvp = $_.trim().split($KvDelimiter)
+            $result.add($kvp[0], $kvp[1])
+        }
+        return $result
+    }
+}
+
+function ConvertFrom-Regex {
+    param(
+        [Parameter(ValueFromPipeline)]
+        $InputObject,
+
+        [Parameter(Mandatory, Position = 0)]
+        $Regex
+    )
+    process {
+        [regex]::Matches($_, $Regex) | ForEach-ObjectFast {
+            $result = @{}
+            $_.Groups | ForEach-ObjectFast {
+                $result.Add($_.Name, $_.Value)
+            }
+            $result
+        }
+    }
+}
+
+function Repeat {
+    param(
+        [Parameter(ValueFromPipeline, Mandatory)]
+        $InputObject,
+
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateRange(2, [long]::MaxValue)]
+        [long] $Times
+    )
+
+    process {
+        [ScriptBlock]::Create("foreach (`$null in 1..$Times) { $_ }").Invoke()
     }
 }
