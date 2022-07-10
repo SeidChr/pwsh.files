@@ -26,3 +26,8 @@ Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function ForwardWord
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+
+# https://stackoverflow.com/a/52485269/1280354
+# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-7.2
+# Store previous command's output in $__
+$PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
