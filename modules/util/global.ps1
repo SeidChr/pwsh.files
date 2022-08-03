@@ -363,6 +363,8 @@ function ConvertTo-QueryString {
     }
 }
 
+# keeps the order of members in the object
+# its like insert-or-update, where insert will insert at the end and update will keep the order.
 function Set-Member {
     param(
         [string] $Name,
@@ -378,6 +380,7 @@ function Set-Member {
             $prop = [psnoteproperty]::new($Name, $Value)
             $InputObject.psobject.Properties.Add($prop) 
         }
+
         return $_
     }
 }
@@ -580,54 +583,6 @@ function Where-ObjectFast {
     }
 }
 
-# https://powershell.one/tricks/performance/pipeline
-function ForEach-ObjectFast {
-    param
-    (
-        [ScriptBlock]
-        $Process,
-    
-        [ScriptBlock]
-        $Begin,
-    
-        [ScriptBlock]
-        $End
-    )
-  
-    begin {
-        # construct a hard-coded anonymous simple function from
-        # the submitted scriptblocks:
-        $code = @"
-& {
-  begin
-  {
-    $Begin
-  }
-  process
-  {
-    $Process
-  }
-  end
-  {
-    $End
-  }
-}
-"@
-        # turn code into a scriptblock and invoke it
-        # via a steppable pipeline so we can feed in data
-        # as it comes in via the pipeline:
-        $pip = [ScriptBlock]::Create($code).GetSteppablePipeline()
-        $pip.Begin($true)
-    }
-    process {
-        # forward incoming pipeline data to the custom scriptblock:
-        $pip.Process($_)
-    }
-    end {
-        $pip.End()
-    }
-}
-
 # .SYNOPSIS
 # Converts a classical cookie string into an hashtable, where every cookie has a key.
 function ConvertFrom-Cookie {
@@ -684,4 +639,11 @@ function Repeat {
     process {
         [ScriptBlock]::Create("foreach (`$null in 1..$Times) { $_ }").Invoke()
     }
+}
+
+# using module PSScriptAnalyzer
+# TODO: add module-check and automatic installation
+function Format {
+    param([string] $Path)
+    Invoke-Formatter -ScriptDefinition (Get-Content $Path -Raw) -Settings CodeFormattingOTBS | Set-Content $Path
 }
