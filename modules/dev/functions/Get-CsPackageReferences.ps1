@@ -1,3 +1,11 @@
+[OutputType([Result])]
+param()
+
+class Result {
+    $Name
+    $Version
+}
+
 Get-CsProjectFiles
 | Get-Content -Raw 
 | ForEach-Object { 
@@ -6,7 +14,7 @@ Get-CsProjectFiles
 } 
 | Group-Object -Property Include 
 | ForEach-Object {
-    [Pscustomobject]@{
+    [Result]@{
         Name    = $_.Name
         Version = $_.Group.Version | Sort-Object -Unique
     }
