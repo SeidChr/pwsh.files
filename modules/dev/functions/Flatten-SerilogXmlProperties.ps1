@@ -32,7 +32,11 @@ end {
                     $entry.$_ = $entry.$_, $entry.$SourcePropertyName[$_]
                 }
             } else {
-                $null = $entry | Add-Member -MemberType NoteProperty -Name $_ -Value $entry.$SourcePropertyName[$_]
+                if ($entry.$_) {
+                    # do nothing when the properties value is empty
+                } else {
+                    $null = $entry | Add-Member -Force -MemberType NoteProperty -Name $_ -Value $entry.$SourcePropertyName[$_]
+                }
             }
         }
 
