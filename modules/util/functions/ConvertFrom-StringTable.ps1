@@ -27,7 +27,8 @@ process {
             $name = $column.Label.Trim()
             if ($IndexNames -or (-not $name)) { 
                 $name = $column.Index
-            } 
+            }           
+
             # $name
             $result[$name] = $line.Substring($column.Start, $column.Length).Trim()
         }
