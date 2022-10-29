@@ -132,6 +132,54 @@ function Initialize-VSCodeProfile {
 }
 
 function Test-VsCode {
-    $callingProcess = Get-CallingProcess
-    $callingProcess -and ($callingProcess.ProcessName -eq "Code")
+    # $callingProcess = Get-CallingProcess
+    # $callingProcess -and ($callingProcess.ProcessName -eq "Code")
+    $env:TERM_PROGRAM -eq 'vscode'
 }
+
+function Test-WinTerm {
+    # $callingProcess = Get-CallingProcess
+    # $callingProcess -and ($callingProcess.ProcessName -eq 'WindowsTerminal')
+    !!$env:WT_SESSION
+}
+
+# https://discord.com/channels/180528040881815552/1035930573484589146
+# {
+#     "key": "shift+enter",
+#     "command": "workbench.action.terminal.sendSequence",
+#     "args": {
+#         "text": "\u2665"
+#     },
+#     "when": "terminalFocus",
+# }
+#if ($env:TERM_PROGRAM -eq 'vscode') {
+# ~\AppData\Roaming\Code\User\keybindings.json
+function Set-VsCodeHackyAddLineBinding {
+    if (Test-VsCode) {
+        $heart = "$([char]0x2665)"
+        $binding = @{
+            "key"     = "shift+enter"
+            "command" = "workbench.action.terminal.sendSequence"
+            "args"    = @{ "text" = $heart }
+            "when"    = "terminalFocus"
+        }
+
+        $keybindingsFilePath = Join-Path $env:APPDATA Code User keybindings.json
+
+        function SetBindings($Bindings) {
+            Set-Content -Path $keybindingsFilePath -Value (ConvertTo-Json -InputObject $Bindings -EscapeHandling EscapeNonAscii -Depth 10)
+        }
+
+        if (Test-Path $keybindingsFilePath) {
+            $keybindings = Get-Content -Raw $keybindingsFilePath | ConvertFrom-Json -NoEnumerate
+            if (! ($keybindings | Where-Object { $_."key" -eq "shift+enter" -and $_."args"."text" -eq $heart })) {
+                SetBindings ($keybindings + $binding)
+            }
+        } else {
+            SetBindings (, $binding)
+        }
+
+        Set-PSReadLineKeyHandler -Chord $heart -Function AddLine
+    } 
+}
+

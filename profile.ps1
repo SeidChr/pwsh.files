@@ -31,3 +31,5 @@ Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-7.2
 # Store previous command's output in $__
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
+
+Set-VsCodeHackyAddLineBinding
