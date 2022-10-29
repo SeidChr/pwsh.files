@@ -5,6 +5,7 @@ $account = "SeidChr"
 $repository = "pwsh.files"
 $destination = Join-Path ~ .pwsh
 $githubBaseUrl = "https://github.com/$account/$repository"
+$selectedProfile = $PROFILE.CurrentUserAllHosts
 
 if ($NoCheckout) {
     $version = "master"
@@ -30,13 +31,13 @@ if ($NoCheckout) {
     $profilePath = Join-Path $destination profile.ps1
     $command = ". $profilePath"
     & git clone "$githubBaseUrl.git" $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($destination)
-    if (-not (Test-Path $PROFILE)) {
-        New-Item $PROFILE -Force
+    if (-not (Test-Path $selectedProfile)) {
+        New-Item $selectedProfile -Force
     }
-    if (!(Get-Content $PROFILE | Out-String).Contains($command)) {
-        Add-Content $PROFILE -Value $command
+    if (!(Get-Content $selectedProfile | Out-String).Contains($command)) {
+        Add-Content $selectedProfile -Value $command
     }
 }
 
 # load profile
-. $PROFILE
+. $selectedProfile

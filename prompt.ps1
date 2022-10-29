@@ -7,6 +7,7 @@ function prompt {
     $red      = Get-VtTextColor "#F14C4C"
     $green    = Get-VtTextColor "#23D18B"
     $darkGray = Get-VtTextColor "#666666"
+    $bright   = Get-VtTextColor "#CCCCCC"
     $clear    = Get-VtClear
 
     $homePath     = (Resolve-Path ~).ToString()
@@ -17,7 +18,7 @@ function prompt {
 
     $prefixPart = "$red$exitCodePrefix$nestedPrefix$tag>$clear "
     $statusPart = if (Test-Path function:PROMPTSTATUS) { "$red$(PROMPTSTATUS)$clear" }
-    $promptPart = "$darkGray`$$clear " # cursor comes here
+    $promptPart = "$darkGray`$$bright>$clear " # cursor comes here
 
     $locationPart = ""
     if ($homePath -ieq $locationPath) {
