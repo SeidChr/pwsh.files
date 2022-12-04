@@ -556,3 +556,7 @@ function Format {
     param([string] $Path)
     Invoke-Formatter -ScriptDefinition (Get-Content $Path -Raw) -Settings CodeFormattingOTBS | Set-Content $Path
 }
+
+filter ConvertFrom-Base64 {
+    [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($_))
+}
