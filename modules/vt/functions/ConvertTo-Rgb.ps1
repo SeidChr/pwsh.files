@@ -17,7 +17,8 @@ switch ($HexColor.Length) {
     }
     # #06C
     4 {
-        $startAt = 1; $width = 1
+        $startAt = 1;
+        $width = 1
     }
     # 0066CC
     6 {
