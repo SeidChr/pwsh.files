@@ -556,3 +556,31 @@ function Format {
     param([string] $Path)
     Invoke-Formatter -ScriptDefinition (Get-Content $Path -Raw) -Settings CodeFormattingOTBS | Set-Content $Path
 }
+
+function Send-Bytes {
+    param(
+        [string] $To, 
+        [string] $Arguments
+    )
+
+    begin {
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.RedirectStandardInput = $true
+        $startInfo.FileName = $To
+        $startInfo.Arguments = $Arguments
+
+        $process = [System.Diagnostics.Process]::Start($startInfo)
+        $inputStream = $process.StandardInput.BaseStream
+    }
+
+    process {
+        $inputStream.WriteByte([byte]$_)
+    }
+
+    end {
+        $inputStream.Flush()
+        $inputStream.Close()
+        
+        $process.WaitForExit()
+    }
+}
