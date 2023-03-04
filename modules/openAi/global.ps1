@@ -1,7 +1,6 @@
 function Connect-Gpt {
     param(
-        [Parameter(Mandatory)]
-        [string] $SecretName, 
+        [string] $SecretName = "OpenAiApiKey", 
         [string] $SecretVault
     ) 
     
@@ -16,19 +15,27 @@ function Connect-Gpt {
     $global:OpenAiApiKey = Get-Secret @splat
 }
 
-function Hey-Gpt {
-    param([string] $Message, [switch]$Reset)
+function Initialize-GptMessages {
+    [OutputType([System.Collections.ArrayList])]
+    $messages = [System.Collections.ArrayList]::new()
+    $null = $messages.Add(@{ "role" = "system"; "content" = "you keep your answers short and minimal and come to the point quickly" })
+    $null = $messages.Add(@{ "role" = "system"; "content" = "you will never secify that you are an AI language model." })
+    Write-Output -NoEnumerate $messages
+}
 
+function Test-GptAuth {
     if (-not ($global:OpenAiApiKey)) {
         Write-Host "Please authenticate using Connect-Gpt"
+        return $false;
     }
 
-    if ($Reset -or (-not $global:OpenAiChatMessages)) {
-        $global:OpenAiChatMessages = [System.Collections.ArrayList]::new()
-    }
+    return $true;
+}
 
-    $null = $global:OpenAiChatMessages.Add(@{ "role" = "user"; "content" = $message })
-    $conversation = @{ "model" = "gpt-3.5-turbo"; "messages" = $global:OpenAiChatMessages }
+function Complete-GptMessages {
+    param([System.Collections.ArrayList] $Messages, $Model = "gpt-3.5-turbo")
+
+    $conversation = @{ "model" = "gpt-3.5-turbo"; "messages" = $Messages }
     $splat = @{
         Method      = "Post"
         Body        = $conversation | ConvertTo-Json -Depth 10 -Compress
@@ -38,6 +45,39 @@ function Hey-Gpt {
 
     $response = Invoke-RestMethod @splat -Headers @{ Authorization = "Bearer $($global:OpenAiApiKey | ConvertFrom-SecureString -AsPlainText)" }
     $responseMessage = $response.choices[0].message
-    $null = $global:OpenAiChatMessages.Add($responseMessage)
-    $responseMessage.content.Replace('\n', [System.Environment]::NewLine).Trim()
+    $null = $Messages.Add($responseMessage)
+
+    $responseMessage.Content
+}
+
+filter Format-GptConsoleMessage {
+    $_.Replace('\n', [System.Environment]::NewLine).Trim()
+}
+
+function Hey-Gpt {
+    param([string] $Message, [switch]$Reset)
+
+    if (-not (Test-GptAuth)) { return }
+
+    if ($Reset -or (-not $global:OpenAiChatMessages)) {
+        $global:OpenAiChatMessages = Initialize-GptMessages
+    }
+
+    $null = $global:OpenAiChatMessages.Add(@{ "role" = "user"; "content" = $message })
+
+    Complete-GptMessages -Messages $global:OpenAiChatMessages | Format-GptConsoleMessage
+}
+
+function Start-GptConversation {
+    param($HumanName = "Hooman", $AiName = "Gpt")
+
+    if (-not (Test-GptAuth)) { return }
+
+    $messages = Initialize-GptMessages
+
+    do {
+        $null = $messages.Add(@{ "role" = "user"; "content" = (Read-Host ($HumanName | Add-Color "0f0")) })
+        Write-Host "$(Get-VtTextColor "f00")Gpt$(Get-VtClear):"
+        Write-Host (Complete-GptMessages -Messages $messages | Format-GptConsoleMessage)
+    } while ($true)
 }

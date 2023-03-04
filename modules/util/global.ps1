@@ -588,3 +588,9 @@ function Send-Bytes {
 filter ConvertFrom-Base64 {
     [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($_))
 }
+
+# https://learn.microsoft.com/en-us/powershell/utility-modules/secretmanagement/how-to/using-secrets-in-automation?view=ps-modules
+function Unlock {
+    $password = Import-Clixml -Path ~\password.xml
+    Unlock-SecretStore -Password $password
+}
