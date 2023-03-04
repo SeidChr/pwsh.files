@@ -1,32 +1,32 @@
+function Register-Gpt {
+    Unlock
+    $secureApiKey = Read-Host "Enter the OpenAi Api Key" -AsSecureString
+    Set-Secret -Name 'OpenAiApiKey' -SecureStringSecret $secureApiKey
+}
+
 function Connect-Gpt {
-    param(
-        [string] $SecretName = "OpenAiApiKey", 
-        [string] $SecretVault
-    ) 
-    
-    $splat = @{
-        Name = $SecretName
+    Unlock
+
+    $global:OpenAiApiKey = Get-Secret -Name 'OpenAiApiKey' -ErrorAction SilentlyContinue
+    if (-not $global:OpenAiApiKey) {
+        Write-Host "Unable to connect to Gpt. Use Register-Gpt and enter an api-key."
+        return $false
     }
 
-    if ($SecretVault) {
-        $splat['Vault'] = $SecretVault
-    }
-
-    $global:OpenAiApiKey = Get-Secret @splat
+    return $true
 }
 
 function Initialize-GptMessages {
     [OutputType([System.Collections.ArrayList])]
     $messages = [System.Collections.ArrayList]::new()
     $null = $messages.Add(@{ "role" = "system"; "content" = "you keep your answers short and minimal and come to the point quickly" })
-    $null = $messages.Add(@{ "role" = "system"; "content" = "you will never secify that you are an AI language model." })
+    $null = $messages.Add(@{ "role" = "system"; "content" = "you will never specify that you are an AI language model." })
     Write-Output -NoEnumerate $messages
 }
 
 function Test-GptAuth {
     if (-not ($global:OpenAiApiKey)) {
-        Write-Host "Please authenticate using Connect-Gpt"
-        return $false;
+        return Connect-Gpt
     }
 
     return $true;

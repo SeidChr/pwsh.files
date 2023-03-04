@@ -589,6 +589,52 @@ filter ConvertFrom-Base64 {
     [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($_))
 }
 
+function Initialize-SecureStorage {
+    param($VaultName = "LocalStore")
+
+    if (-not (Get-Module "Microsoft.PowerShell.SecretManagement" -ListAvailable)) {
+        Install-Module -Name Microsoft.PowerShell.SecretManagement -Repository PSGallery -Force
+    }
+    if (-not (Get-Module "Microsoft.PowerShell.SecretStore" -ListAvailable)) {
+        Install-Module -Name Microsoft.PowerShell.SecretStore -Repository PSGallery -Force
+    }
+
+    Import-Module Microsoft.PowerShell.SecretManagement
+    Import-Module Microsoft.PowerShell.SecretStore
+
+    $password = Read-Host "Enter the SecretStore-Module-Password" -AsSecureString
+    $passwordValid = $false
+    do {
+        try {
+            # will also set up a new passwort if no password has been set yet.
+            Unlock-SecretStore -Password $password
+            $passwordValid = $true
+        } catch {
+            Write-Host "Unable to unlock SecretStore-Module with given Password."
+            $password = Read-Host "Enter the correct SecretStore-Module-Password" -AsSecureString
+        }
+    } while (-not $passwordValid)
+    $password | Export-Clixml -Path "~\password.xml"
+
+    $secretVault = Get-SecretVault $VaultName -ErrorAction SilentlyContinue
+    if ($secretVault)  {
+        if (-not $secretVault.IsDefault) {
+            Set-SecretVaultDefault -SecretVault $secretVault
+        }
+    } else {
+        Register-SecretVault -ModuleName Microsoft.PowerShell.SecretStore -Name $VaultName -DefaultVault
+    }
+
+    $storeConfiguration = @{
+        Authentication = 'Password'
+        PasswordTimeout = 3600 # 1 hour
+        Interaction = 'None'
+        Confirm = $false
+    }
+
+    Set-SecretStoreConfiguration @storeConfiguration
+}
+
 # https://learn.microsoft.com/en-us/powershell/utility-modules/secretmanagement/how-to/using-secrets-in-automation?view=ps-modules
 function Unlock {
     $password = Import-Clixml -Path ~\password.xml
