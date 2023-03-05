@@ -1,3 +1,5 @@
+# uses VT and utils module from the modules directory
+
 function Register-Gpt {
     Unlock
     $secureApiKey = Read-Host "Enter the OpenAi Api Key" -AsSecureString
