@@ -57,7 +57,12 @@ filter Format-GptConsoleMessage {
 }
 
 function Hey-Gpt {
-    param([string] $Message, [switch]$Reset)
+    param(
+        [switch]$Reset,
+
+        [Parameter(ValueFromRemainingArguments)]
+        [string] $Message
+    )
 
     if (-not (Test-GptAuth)) { return }
 
