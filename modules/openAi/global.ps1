@@ -40,10 +40,12 @@ function Complete-GptMessages {
     $conversation = @{ "model" = "gpt-3.5-turbo"; "messages" = $Messages }
     $splat = @{
         Method      = "Post"
-        Body        = $conversation | ConvertTo-Json -Depth 10 -Compress
+        Body        = $conversation | ConvertTo-Json -Depth 10 -Compress -EscapeHandling EscapeNonAscii
         Uri         = "https://api.openai.com/v1/chat/completions"
         ContentType = "application/json"
     }
+
+    Write-Debug $splat.Body
 
     $response = Invoke-RestMethod @splat -Headers @{ Authorization = "Bearer $($global:OpenAiApiKey | ConvertFrom-SecureString -AsPlainText)" }
     $responseMessage = $response.choices[0].message
