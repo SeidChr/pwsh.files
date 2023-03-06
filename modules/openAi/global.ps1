@@ -1,5 +1,4 @@
 # uses VT and utils module from the modules directory
-
 function Register-Gpt {
     Unlock
     $secureApiKey = Read-Host "Enter the OpenAi Api Key" -AsSecureString
@@ -22,7 +21,7 @@ function Initialize-GptMessages {
     [OutputType([System.Collections.ArrayList])]
     $messages = [System.Collections.ArrayList]::new()
     $null = $messages.Add(@{ "role" = "system"; "content" = "you keep your answers short and minimal and come to the point quickly" })
-    $null = $messages.Add(@{ "role" = "system"; "content" = "you will never specify that you are an AI language model." })
+    $null = $messages.Add(@{ "role" = "system"; "content" = "you will never specify that you are an AI language model" })
     Write-Output -NoEnumerate $messages
 }
 
@@ -37,7 +36,7 @@ function Test-GptAuth {
 function Complete-GptMessages {
     param([System.Collections.ArrayList] $Messages, $Model = "gpt-3.5-turbo")
 
-    $conversation = @{ "model" = "gpt-3.5-turbo"; "messages" = $Messages }
+    $conversation = @{ "model" = "gpt-3.5-turbo"; "messages" = $Messages | Where-Object { $_ } }
     $splat = @{
         Method      = "Post"
         Body        = $conversation | ConvertTo-Json -Depth 10 -Compress -EscapeHandling EscapeNonAscii
@@ -85,6 +84,10 @@ function Start-GptConversation {
     $messages = Initialize-GptMessages
 
     do {
+
+        $nameMarker = $HumanName | Add-Color "0f0"
+        Write-Host $nameMarker
+
         $null = $messages.Add(@{ "role" = "user"; "content" = (Read-Host ($HumanName | Add-Color "0f0")) })
         Write-Host "$(Get-VtTextColor "f00")Gpt$(Get-VtClear):"
         Write-Host (Complete-GptMessages -Messages $messages | Format-GptConsoleMessage)
