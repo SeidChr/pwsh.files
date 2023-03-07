@@ -84,9 +84,8 @@ function Start-GptConversation {
     $messages = Initialize-GptMessages
 
     do {
-
-        $nameMarker = $HumanName | Add-Color "0f0"
-        Write-Host $nameMarker
+        # $nameMarker = $HumanName | Add-Color "0f0"
+        # Write-Host $nameMarker
 
         $null = $messages.Add(@{ "role" = "user"; "content" = (Read-Host ($HumanName | Add-Color "0f0")) })
         Write-Host "$(Get-VtTextColor "f00")Gpt$(Get-VtClear):"
