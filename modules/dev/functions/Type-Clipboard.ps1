@@ -11,7 +11,20 @@ function TypeX {
         Timeout $Timeout
     }
     $Text.ToCharArray() | ForEach-Object {
-        $wshell.SendKeys("{$_}"); Start-Sleep -Milliseconds $DelayMs
+        $wshell.SendKeys("{$_}"); 
+        Start-Sleep -Milliseconds $DelayMs
+    }
+}
+
+function TypeY {
+    param([int]$Timeout = 5, [int]$DelayMs = 20, [string] $Text)
+    Add-Type -AssemblyName System.Windows.Forms
+    if ($Timeout) {
+        Timeout $Timeout
+    }
+    $Text.ToCharArray() | ForEach-Object {
+        [System.Windows.Forms.SendKeys]::SendWait("{$_}")
+        Start-Sleep -Milliseconds $DelayMs
     }
 }
 
@@ -27,17 +40,15 @@ while ($true) {
     $strg = $strgState -in -32767, -32768
     $alt = $altState -in -32767, -32768
     $x = $xState -eq -32767
-    # $current = "$strgState $altState $insState"
-    # #if ($current -ne $last) {
-    # #   $last = $current
-    #    $current
-    # #}
+
     if ($strg -and $alt -and $x) {
         while ([PsKeyLog.Keyboard]::GetAsyncKeyState(17) -and [PsKeyLog.Keyboard]::GetAsyncKeyState(18)) {}
         Start-Sleep -Milliseconds 50
-        TypeX -Timeout:0 -Text:(Get-Clipboard)
+        TypeY -Timeout:0 -Text:(Get-Clipboard)
     }
+
     Start-Sleep -Milliseconds 200
+    
     #0..255 |% { 
     #    $key = $_
     #    $result = [PsKeyLog.Keyboard]::GetAsyncKeyState($_)
