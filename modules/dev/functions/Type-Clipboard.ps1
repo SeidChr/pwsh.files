@@ -37,6 +37,7 @@ while ($true) {
     $strgState = [PsKeyLog.Keyboard]::GetAsyncKeyState(17)
     $altState = [PsKeyLog.Keyboard]::GetAsyncKeyState(18)
     $xState = [PsKeyLog.Keyboard]::GetAsyncKeyState(4)
+    
     $strg = $strgState -in -32767, -32768
     $alt = $altState -in -32767, -32768
     $x = $xState -eq -32767
@@ -48,7 +49,7 @@ while ($true) {
     }
 
     Start-Sleep -Milliseconds 200
-    
+
     #0..255 |% { 
     #    $key = $_
     #    $result = [PsKeyLog.Keyboard]::GetAsyncKeyState($_)
