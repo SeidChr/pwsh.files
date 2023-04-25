@@ -10,10 +10,10 @@ param(
     [switch] $Next,
 
     # not current, but last slot
-    [switch] $Last,
+    [switch] $Last
 
-    [string] $Category = 'tt',
-    [string] $Body = "Started at $($now.ToString('yyyy-MM-ddTHH:mm'))"
+    # [string] $Category = 'tt',
+    # [string] $Body = "Started at $($now.ToString('yyyy-MM-ddTHH:mm'))"
 )
 
 # https://everything-powershell.com/powershell-7-0-3-create-an-email-message/
@@ -123,7 +123,7 @@ begin {
 
 process {   
     $newCalenderItem.Subject = $Subject
-    $newCalenderItem.Body = $Body
+    $newCalenderItem.Body = "Started at $($now.ToString('yyyy-MM-ddTHH:mm'))"
     $newCalenderItem.ReminderSet = $false
     $newCalenderItem.ReminderMinutesBeforeStart = 0
     $newCalenderItem.Start = $start
