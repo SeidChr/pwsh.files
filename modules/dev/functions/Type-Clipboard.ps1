@@ -23,7 +23,15 @@ function TypeY {
         Timeout $Timeout
     }
     $Text.ToCharArray() | ForEach-Object {
-        [System.Windows.Forms.SendKeys]::SendWait("{$_}")
+        # Write-Host ([int][char]$_) $_
+        $toSend = switch ($_) {
+            { [int][char]$_ -eq 13 } { '{ENTER}' } # `r -> newline
+            { [int][char]$_ -eq 10 } { '' } # `n -> nothing
+            ' ' { ' ' }
+            default { "{$_}" }
+        }
+        
+        [System.Windows.Forms.SendKeys]::SendWait($toSend)
         Start-Sleep -Milliseconds $DelayMs
     }
 }
@@ -43,9 +51,12 @@ while ($true) {
     $x = $xState -eq -32767
 
     if ($strg -and $alt -and $x) {
+        $clipboard = Get-Clipboard -Raw
+        Write-Host "Detected 'Paste'. Pasting '$clipboard'." -NoNewline
         while ([PsKeyLog.Keyboard]::GetAsyncKeyState(17) -and [PsKeyLog.Keyboard]::GetAsyncKeyState(18)) {}
+        Write-Host "."
         Start-Sleep -Milliseconds 50
-        TypeY -Timeout:0 -Text:(Get-Clipboard)
+        TypeY -Timeout:0 -Text:$clipboard
     }
 
     Start-Sleep -Milliseconds 200
@@ -58,6 +69,4 @@ while ($true) {
     #    }
     #}
 }
-
-
-
+   #0..255 |% {     #    $key = $_    #    $result = [PsKeyLog.Keyboard]::GetAsyncKeyState($_)    #    if ($result -ne 0) {    #        "$($key): $result"    #    }    #}
