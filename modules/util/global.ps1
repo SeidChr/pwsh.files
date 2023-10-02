@@ -637,6 +637,11 @@ function Initialize-SecureStorage {
 
 # https://learn.microsoft.com/en-us/powershell/utility-modules/secretmanagement/how-to/using-secrets-in-automation?view=ps-modules
 function Unlock {
-    $password = Import-Clixml -Path ~\password.xml
-    Unlock-SecretStore -Password $password
+    $file = "~\password.xml"
+    if (Test-Path $file) {
+        $password = Import-Clixml -Path $file
+        Unlock-SecretStore -Password $password
+    } else {
+        Write-Error "Cannot Unlock. Password File Missing. Use Initialize-SecureStorage"
+    }
 }

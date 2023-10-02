@@ -1,6 +1,7 @@
 # uses VT and utils module from the modules directory
 function Register-Gpt {
     Unlock
+    
     $secureApiKey = Read-Host "Enter the OpenAi Api Key" -AsSecureString
     Set-Secret -Name 'OpenAiApiKey' -SecureStringSecret $secureApiKey
 }
@@ -33,10 +34,38 @@ function Test-GptAuth {
     return $true;
 }
 
+function Edit-GptInput {
+    # https://platform.openai.com/docs/api-reference/edits/create
+    param(
+        [Alias('Input')]
+        [string] $OriginalInput,
+
+        [Parameter(Mandatory)]
+        [string] $Instruction,
+
+        [string] $Model = "code-davinci-edit-001"
+    )
+
+    if (-not (Test-GptAuth)) { Connect-Gpt }
+
+    $command = @{ "model" = $Model; "input" = $OriginalInput; "instruction" = $Instruction}
+    $splat = @{
+        Method      = "Post"
+        Body        = $command | ConvertTo-Json -Depth 10 -Compress -EscapeHandling EscapeNonAscii
+        Uri         = "https://api.openai.com/v1/edits"
+        ContentType = "application/json"
+    }
+
+    Write-Debug $splat.Body
+
+    $response = Invoke-RestMethod @splat -Headers @{ Authorization = "Bearer $($global:OpenAiApiKey | ConvertFrom-SecureString -AsPlainText)" }
+    $response.choices[0].text | Format-GptConsoleMessage
+}
+
 function Complete-GptMessages {
     param([System.Collections.ArrayList] $Messages, $Model = "gpt-3.5-turbo")
 
-    $conversation = @{ "model" = "gpt-3.5-turbo"; "messages" = $Messages | Where-Object { $_ } }
+    $conversation = @{ "model" = $Model; "messages" = $Messages | Where-Object { $_ } }
     $splat = @{
         Method      = "Post"
         Body        = $conversation | ConvertTo-Json -Depth 10 -Compress -EscapeHandling EscapeNonAscii
