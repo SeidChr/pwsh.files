@@ -89,10 +89,10 @@ Test-Connection -Delay $DelaySeconds -TargetName $Target -TimeoutSeconds $Timeou
 
     $nullPos = $Host.UI.RawUI.CursorPosition
 
-    if ($status) {
-        Write-Host ("currently on" | Add-Color "555" -BgColor "0c0") -NoNewline
+    if ($lastShort) {
+        Write-Host ("currently  ON" | Add-Color "555" -BgColor "0c0") -NoNewline
     } else {
-        Write-Host ("currently off" | Add-Color "ff0" -BgColor "c00") -NoNewline
+        Write-Host ("currently OFF" | Add-Color "ff0" -BgColor "c00") -NoNewline
     }
 
     $Host.UI.RawUI.CursorPosition = $nullPos # reset x to overwrite with actual status change
