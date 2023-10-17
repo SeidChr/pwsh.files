@@ -6,6 +6,9 @@ param(
     [Alias("shell")]
     $Entrypoint,
 
+    [Alias("p")]
+    $Expose,
+
     [Alias("mappedFolderPath")]
     $MapFrom,
 
@@ -63,7 +66,12 @@ if ($User) {
     $userArgument = "--user `"$User`""
 }
 
-$cmd = "docker run -it --rm $mappingArgument $workingDirectoryArgument $entrypointArgument $userArgument $Image";
+$exposeArgument = ""
+if ($Expose) {
+    $exposeArgument = "-p $Expose"
+}
+
+$cmd = "docker run -it --rm $mappingArgument $workingDirectoryArgument $entrypointArgument $userArgument $exposeArgument $Image";
 Write-Host "Command: " $cmd
 
 Invoke-Expression $cmd
