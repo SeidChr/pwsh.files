@@ -1,6 +1,7 @@
 param(
     [string] $Name,
-    [switch] $Pwsh
+    [switch] $Pwsh,
+    [switch] $Console
 )
 
 # Create Folder With name "<Date> <Name>"
@@ -21,9 +22,11 @@ if (-not $Name) {
 ## OneDrive
 ### Find OneDrive Folder
 #### private or company OneDrive
+$folders = .\Get-DumpFolder.ps1
+$groupedFolders = $folders | Group-Object -Property Type
 
 # Query available Dump folders (non-desktop)
-# $Selection = "Desktop", "Code Dump", "Work Dump", "Private Dump" 
+$Selection = $groupedFolders.Name + "Desktop"
 #     | ForEach-Object { New-Object System.Management.Automation.Host.ChoiceDescription $_ }
 # $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
 
@@ -42,6 +45,17 @@ if ($Pwsh) {
     $scriptFilePath = Join-Path $newFolderPath "script.ps1"
     if (-not (Test-Path $scriptFilePath)) {
         $null = New-Item -Path $scriptFilePath -ItemType File
+    }
+}
+
+if ($Console) {
+    Push-Location $newFolderPath
+    try {
+        dotnet new sln --name $Name
+        dotnet new console --name $Name
+        dotnet new gitignore
+    } finally {
+        Pop-Location
     }
 }
 
