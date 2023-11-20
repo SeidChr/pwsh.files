@@ -22,11 +22,11 @@ if (-not $Name) {
 ## OneDrive
 ### Find OneDrive Folder
 #### private or company OneDrive
-$folders = .\Get-DumpFolder.ps1
-$groupedFolders = $folders | Group-Object -Property Type
+# $folders = Get-DumpFolder
+# $groupedFolders = $folders | Group-Object -Property Type
 
-# Query available Dump folders (non-desktop)
-$Selection = $groupedFolders.Name + "Desktop"
+# # Query available Dump folders (non-desktop)
+# $Selection = $groupedFolders.Name + "Desktop"
 #     | ForEach-Object { New-Object System.Management.Automation.Host.ChoiceDescription $_ }
 # $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
 
