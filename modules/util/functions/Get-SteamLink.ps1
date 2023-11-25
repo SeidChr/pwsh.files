@@ -1,7 +1,7 @@
-# 
+[CmdletBinding()]
 param(
-    [string] $ApiKey, 
-    [string] $VanityUrl, 
+    [string] $ApiKey,
+    [string] $VanityUrl,
     [string] $SteamId,
     [switch] $Join
 )
@@ -14,8 +14,11 @@ if (!$SteamId) {
     # https://stackoverflow.com/questions/19247887/get-steamid-by-user-nickname
     # https://wiki.teamfortress.com/wiki/WebAPI/ResolveVanityURL
     $SteamId = Invoke-RestMethod "http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=$ApiKey&vanityurl=$VanityUrl" 
-    | ForEach-Object response 
+    | ForEach-Object response
+    | Tee-Object -Variable "response"
     | ForEach-Object steamid
+
+    Write-Debug $response
 }
 
 function ConfirmLink {
@@ -32,10 +35,10 @@ function ConfirmLink {
 
 # https://www.unknowncheats.me/forum/counterstrike-global-offensive/210094-build-lobbylink.html
 Invoke-RestMethod "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=$ApiKey&steamids=$SteamId" 
-| ForEach-Object response 
-| ForEach-Object players 
-| Tee-Object -Variable "response"
+| ForEach-Object response
+| ForEach-Object players
 | ForEach-Object {
+    Write-Debug $_
     if ($_.lobbysteamid) {
         ConfirmLink -Link:"steam://joinlobby/$($_.gameid)/$($_.lobbysteamid)/$SteamId" -Game:$_.gameextrainfo
     } elseif ($_.gameserverip) {
@@ -43,4 +46,4 @@ Invoke-RestMethod "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v00
     } else {
         Write-Host "No game data. User not playing?"
     }
-} 
+}
