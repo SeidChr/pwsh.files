@@ -1,24 +1,25 @@
 [CmdletBinding()]
 param(
-    [string] $ApiKey,
-    [string] $VanityUrl,
-    [string] $SteamId,
-    [switch] $Join
+    [switch] $Auth
 )
 
-if (!$ApiKey -or (!$SteamId -and !$VanityUrl)) {
-    throw "Provide API-Key and SteamId or VanityUrl. Register an API Key: https://steamcommunity.com/dev/apikey"
+if ($Auth) {
+    @{
+        SteamId = Read-Host -Prompt "Steam-Id" -AsSecureString | ConvertFrom-SecureString
+        ApiKey  = Read-Host -Prompt "ApiKey" -AsSecureString | ConvertFrom-SecureString
+    } | ConvertTo-Json > "~/SteamApi.json"
+
+    Write-Host "Data saved to SteamApi.json in your user-folder"
 }
 
-if (!$SteamId) {
-    # https://stackoverflow.com/questions/19247887/get-steamid-by-user-nickname
-    # https://wiki.teamfortress.com/wiki/WebAPI/ResolveVanityURL
-    $SteamId = Invoke-RestMethod "http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=$ApiKey&vanityurl=$VanityUrl" 
-    | ForEach-Object response
-    | Tee-Object -Variable "response"
-    | ForEach-Object steamid
+$secureAuth = Get-Content -Raw -Path "~/SteamApi.json" | ConvertFrom-Json
 
-    Write-Debug $response
+$SteamId = $secureAuth.SteamId | ConvertTo-SecureString | ConvertFrom-SecureString -AsPlainText
+$ApiKey  = $secureAuth.ApiKey  | ConvertTo-SecureString | ConvertFrom-SecureString -AsPlainText
+
+
+if (!$ApiKey -or !$SteamId) {
+    throw "Provide API-Key and SteamId using the -Auth parameter (interactive). Register an API Key: https://steamcommunity.com/dev/apikey"
 }
 
 function ConfirmLink {
@@ -43,6 +44,8 @@ Invoke-RestMethod "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v00
         ConfirmLink -Link:"steam://joinlobby/$($_.gameid)/$($_.lobbysteamid)/$SteamId" -Game:$_.gameextrainfo
     } elseif ($_.gameserverip) {
         ConfirmLink -Link:"steam://connect/$($_.gameserverip)" -Game:$_.gameextrainfo
+    } elseif ($_.gameextrainfo) {
+        Write-Host "Playing '$Game': No Lobby Data (in a foreign Lobby)"
     } else {
         Write-Host "No game data. User not playing?"
     }
