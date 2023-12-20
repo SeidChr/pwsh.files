@@ -39,9 +39,8 @@ function waitTill {
     }
 }
 
-$nextRun = [datetime]::Now
-
 if ($Repeat) {
+    $nextRun = [datetime]::Now
     while ($true) {
         $nextRun = $nextRun.AddSeconds($DelaySeconds)
         execute
