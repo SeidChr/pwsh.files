@@ -1,24 +1,54 @@
 param(
     [switch] $Repeat,
     [switch] $PassThrou,
-    [int] $DelaySeconds = 1
+    [int] $DelaySeconds = 1,
+    [switch] $AlertOnMobileConnection
 )
 
 $stdArgs = @{
     ea = 'SilentlyContinue'
 }
 
+$ipIspCache = [hashtable]::new();
+$lastIpWasMobile = $false;
+
+function whois {
+    param([string] $Ip)
+    if ((-not $ipIspCache.ContainsKey($Ip)) -or (-not $ipIspCache[$Ip])) {
+        $ispResult = Invoke-RestMethod "http://ip-api.com/json/$($Ip)?fields=isp,mobile" @stdArgs
+        $ipIspCache[$Ip] = $ispResult
+    } 
+    
+    $ipIspCache[$Ip]
+}
+
 function execute {
+    $ip = Invoke-RestMethod "https://api64.ipify.org" @stdArgs
+    $whois = whois -Ip:$ip
     $result = @{
-        Time = Get-Date
-        Latency = (Test-Connection google.de -Ping -Count 1 @stdArgs).Latency
-        PublicIp = Invoke-RestMethod "https://api64.ipify.org" @stdArgs
+        Time     = Get-Date
+        Latency  = (Test-Connection google.de -Ping -Count 1 @stdArgs).Latency
+        PublicIp = $ip
+        Isp      = $whois.isp
+        IsMobile = $whois.mobile
     }
 
     if ($PassThrou) {
         $result
     } else {
-        Write-Host ("Time={0:HH:mm:ss.fff} PublicIp={1} Latency={2}" -f $result.Time, $result.PublicIp, $result.Latency)
+        if ($AlertOnMobileConnection) {
+            $currentConnectionIsMobile = $result.IsMobile
+
+            if ((-not $lastIpWasMobile) -and $result.IsMobile) {
+                [console]::beep(1000, 300); [console]::beep(1000, 300)
+            } elseif ($lastIpWasMobile -and (-not $result.IsMobile)) {
+                [console]::beep(200, 300)
+            }
+
+            $lastIpWasMobile = $currentConnectionIsMobile
+        }
+
+        Write-Host ("Time={0:HH:mm:ss.fff} PublicIp={1} Mobile={3} Latency={2}" -f $result.Time, $result.PublicIp, $result.Latency, $result.IsMobile)
     }
     # start-sleep -Milliseconds 1200
 }
