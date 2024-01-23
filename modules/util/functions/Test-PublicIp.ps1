@@ -10,7 +10,7 @@ $stdArgs = @{
 }
 
 $ipIspCache = [hashtable]::new();
-$lastIpWasMobile = $false;
+$lastConnectionWasMobile = $false;
 
 function whois {
     param([string] $Ip)
@@ -39,13 +39,13 @@ function execute {
         if ($AlertOnMobileConnection) {
             $currentConnectionIsMobile = $result.IsMobile
 
-            if ((-not $lastIpWasMobile) -and $result.IsMobile) {
+            if ((-not $lastConnectionWasMobile) -and $currentConnectionIsMobile) {
                 [console]::beep(1000, 300); [console]::beep(1000, 300)
-            } elseif ($lastIpWasMobile -and (-not $result.IsMobile)) {
+            } elseif ($lastConnectionWasMobile -and (-not $currentConnectionIsMobile)) {
                 [console]::beep(200, 300)
             }
 
-            $lastIpWasMobile = $currentConnectionIsMobile
+            $lastConnectionWasMobile = $currentConnectionIsMobile
         }
 
         Write-Host ("Time={0:HH:mm:ss.fff} PublicIp={1} Mobile={3} Latency={2}" -f $result.Time, $result.PublicIp, $result.Latency, $result.IsMobile)
