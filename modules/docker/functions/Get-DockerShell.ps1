@@ -20,7 +20,11 @@ param(
     $WorkingDirectory,
 
     [Alias("u")]
-    $User
+    $User,
+
+    # Deletes the local image before starting, so it will be forcibly updated from the internet
+    [switch]
+    $ForceDownload
 )
 
 Start-Docker -nomsg
@@ -69,6 +73,13 @@ if ($User) {
 $exposeArgument = ""
 if ($Expose) {
     $exposeArgument = "-p $Expose"
+}
+
+if ($ForceDownload) {
+    $cmd = "docker rmi $Image"
+    Write-Host "Command: " $cmd
+
+    Invoke-Expression $cmd 
 }
 
 $cmd = "docker run -it --rm $mappingArgument $workingDirectoryArgument $entrypointArgument $userArgument $exposeArgument $Image";

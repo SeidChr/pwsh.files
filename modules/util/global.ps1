@@ -589,6 +589,10 @@ filter ConvertFrom-Base64 {
     [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($_))
 }
 
+filter ConvertTo-Base64 {
+    [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($_))
+}
+
 function Initialize-SecureStorage {
     param($VaultName = "LocalStore")
 
