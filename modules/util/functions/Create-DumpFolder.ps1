@@ -4,37 +4,13 @@ param(
     [switch] $Console
 )
 
-# Create Folder With name "<Date> <Name>"
-## Where
-## What Name
-
 if (-not $Name) {
     $Name = Read-Host "Identifier or Name"
 }
 
-# Desktop / Sync / OneDrive ?
-##i Desktop is a dump folder in itself. location is queriable through windows.
-## Desktop -|
-
-## Sync
-### Find Sync Folder
-
-## OneDrive
-### Find OneDrive Folder
-#### private or company OneDrive
-# $folders = Get-DumpFolder
-# $groupedFolders = $folders | Group-Object -Property Type
-
-# # Query available Dump folders (non-desktop)
-# $Selection = $groupedFolders.Name + "Desktop"
-#     | ForEach-Object { New-Object System.Management.Automation.Host.ChoiceDescription $_ }
-# $Host.UI.PromptForChoice($Caption, $Message, $Selection, $Default)
-
 $date = Get-Date -Format "yyyyMMdd"
 
 $basePath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Desktop)
-## Create Folder
-## Open Folder
 
 $newFolderPath = Join-Path $basePath "$date $name"
 if (-not (Test-Path $newFolderPath)) {
@@ -51,9 +27,15 @@ if ($Pwsh) {
 if ($Console) {
     Push-Location $newFolderPath
     try {
-        dotnet new sln --name $Name
-        dotnet new console --name $Name
+        $titleCaseName = [Char]::ToUpper($name[0]) + ($name.Substring(1))
+        dotnet new sln --name $titleCaseName
+        dotnet new console --name $titleCaseName
+        dotnet new xunit --name "$titleCaseName.Tests"
+        dotnet sln add $titleCaseName
+        dotnet sln add "$titleCaseName.Tests"
+        dotnet add "$titleCaseName.Tests" reference $titleCaseName
         dotnet new gitignore
+        Invoke-WebRequest -Uri "https://gist.githubusercontent.com/SeidChr/60c54944920f3f5c47c4b2b79a552023/raw" -OutFile ".editorconfig"
     } finally {
         Pop-Location
     }
