@@ -1,12 +1,15 @@
 param(
     [string] $Name,
     [switch] $Pwsh,
-    [switch] $Console
+    [switch] $Console,
+    [switch] $Git
 )
 
 if (-not $Name) {
     $Name = Read-Host "Identifier or Name"
 }
+
+$titleCaseName = [Char]::ToUpper($name[0]) + ($name.Substring(1))
 
 $date = Get-Date -Format "yyyyMMdd"
 
@@ -27,15 +30,34 @@ if ($Pwsh) {
 if ($Console) {
     Push-Location $newFolderPath
     try {
-        $titleCaseName = [Char]::ToUpper($name[0]) + ($name.Substring(1))
-        dotnet new sln --name $titleCaseName
-        dotnet new console --name $titleCaseName
-        dotnet new xunit --name "$titleCaseName.Tests"
-        dotnet sln add $titleCaseName
-        dotnet sln add "$titleCaseName.Tests"
-        dotnet add "$titleCaseName.Tests" reference $titleCaseName
-        dotnet new gitignore
+        $slnName = $titleCaseName
+        $prjName = $titleCaseName
+        $tstName = "$titleCaseName.Tests"
+
+        dotnet new sln     --name $slnName
+        dotnet new console --name $prjName
+        dotnet new xunit   --name $tstName
+        dotnet sln add $prjName
+        dotnet sln add $tstName
+        dotnet     add $tstName reference $prjName
+        
         Invoke-WebRequest -Uri "https://gist.githubusercontent.com/SeidChr/60c54944920f3f5c47c4b2b79a552023/raw" -OutFile ".editorconfig"
+    } finally {
+        Pop-Location
+    }
+}
+
+if ($Git) {
+    Push-Location $newFolderPath
+
+    try {
+        if ($Console) {
+            dotnet new gitignore
+        }
+
+        git init
+        git add *
+        git commit -m "Intital Commit for $titleCaseName"
     } finally {
         Pop-Location
     }
