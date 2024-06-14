@@ -1,24 +1,23 @@
 param(
-    [ScriptBlock[]]
-    [Parameter(Position = 0)]
-    $ScriptBlock,
+    [Parameter(Position = 0, Mandatory)]
+    [ScriptBlock[]] $ScriptBlock,
 
-    [Object[]]
+    # z.B.: (,@(1, 2))
     [Alias("arguments")]
-    $parameters,
+    [Object[][]] $Parameters,
 
     [Alias("sleep")]
-    $pollSleepMilliseconds = 250,
+    [int] $PollSleepMilliseconds = 250,
 
     [Alias("init")]
-    [scriptblock] $initializationScript,
+    [scriptblock] $InitializationScript,
 
     [Alias("input")]
-    [Object]$inputObject
+    [Object] $InputObject
 )
 
-$jobs = $ScriptBlock | ForEach-Object { 
-    Start-Job -ScriptBlock $_ -InitializationScript $initializationScript -ArgumentList $parameters -InputObject $input
+$jobs = for ($i=0; $i -lt $ScriptBlock.Length; $i++) { 
+    Start-Job -ScriptBlock $ScriptBlock[$i] -InitializationScript $InitializationScript -ArgumentList $Parameters[$i] -InputObject $InputObject
 }
 
 try {
