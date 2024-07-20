@@ -4,9 +4,11 @@
 
 param(
     [Parameter(Mandatory)]
+    [Alias("StartColor")]
     [string] $Start,
 
     [Parameter(Mandatory)]
+    [Alias("EndColor")]
     [string] $End,
 
     [Parameter(Mandatory)]

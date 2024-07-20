@@ -63,6 +63,7 @@ function Edit-GptInput {
 }
 
 function Complete-GptMessages {
+    # 3.5 is the highest model usable with completions api (api is legacy already)
     param([System.Collections.ArrayList] $Messages, $Model = "gpt-3.5-turbo")
 
     $conversation = @{ "model" = $Model; "messages" = $Messages | Where-Object { $_ } }
