@@ -26,6 +26,8 @@ function ConfirmLink {
     param($Link, $Game)
     Write-Host "Playing '$Game': $Link"
     if ($Join) {
+        # joining the generated link does not make sense. 
+        # keeping this for when i wanna implement joining foreign links
         $programFiles = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::ProgramFilesX86)
         Start-Process "$programFiles\Steam\steam.exe" $Link
     } else {
