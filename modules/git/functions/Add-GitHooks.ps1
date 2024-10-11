@@ -11,6 +11,11 @@ param(
     [string] $HooksFolder = (Join-Path $projectFolder "githooks")
 )
 
+$ErrorActionPreference = 'Stop'
+
+#$ProjectFolder
+#$HooksFolder
+
 $projectFolder = Resolve-Path $projectFolder
 $hooksFolder = Resolve-Path $hooksFolder
 

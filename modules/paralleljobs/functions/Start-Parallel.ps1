@@ -3,16 +3,16 @@ param(
     [ScriptBlock[]] $ScriptBlock,
 
     # z.B.: (,@(1, 2))
-    [Alias("arguments")]
-    [Object[][]] $Parameters,
+    [Alias("Arguments")]
+    [Object[][]] $Parameters = @(),
 
-    [Alias("sleep")]
+    [Alias("Sleep")]
     [int] $PollSleepMilliseconds = 250,
 
-    [Alias("init")]
+    [Alias("Init")]
     [scriptblock] $InitializationScript,
 
-    [Alias("input")]
+    [Alias("Input")]
     [Object] $InputObject
 )
 
@@ -27,9 +27,9 @@ try {
         Start-Sleep -Milliseconds $pollSleepMilliseconds
     }
 } finally {
-    Write-Host "Stopping Parallel Jobs ..."
+    Write-Host "Stopping Parallel Jobs... ⏳"
     $jobs | Stop-Job
     Write-JobOutput -jobs $jobs
     $jobs | Remove-Job -Force
-    Write-Host "Stopped all jobs."
+    Write-Host "Stopped Parallel Jobs! ✔"
 }

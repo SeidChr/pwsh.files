@@ -7,7 +7,10 @@ param(
 )
 
 $colorCount = $colors.Length
-$jobs | ForEach-Object { $i = 1 } {
+
+$jobs | ForEach-Object { 
+    $i = 1 
+} {
     $fgColor = $colors[($i - 1) % $colorCount]
     $out = $_ | Receive-Job -ErrorAction Continue
     $out = $out -split [System.Environment]::NewLine
