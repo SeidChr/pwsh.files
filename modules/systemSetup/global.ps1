@@ -34,26 +34,32 @@ function Initialize-GamesDrive {
 function Initialize-CoreSoftware {
     @(
         # essentials
-        #'Microsoft.PowerShell'
-        'Git.Git'
+        #'Microsoft.PowerShell'      # must be here before this runs ... can only install manually
+        # install manually: winget install 'Microsoft.PowerShell' --accept-package-agreements
+        'Git.Git'                    # to download and refresh this very profile. also devdw
         'Microsoft.WindowsTerminal'
         '7zip.7zip'
         'Docker.DockerDesktop'
         'Microsoft.Sysinternals'
         'Microsoft.PowerToys'
-        'Synology.DriveClient' # sync
-        'Elgato.StreamDeck'
-        'Logitech.GHUB'
-        '9PF0ZF86W5HK' # passwarden
-        'Microsoft.OneDrive' # update default version, as of problems with login
+        'Synology.DriveClient'       # sync
+        'Elgato.StreamDeck'          # onedrive dump private 20250320
+        'Logitech.GHUB'              # setting suploaded in profile and can be applied from there
+        '9PF0ZF86W5HK'               # passwarden
+        'Microsoft.OneDrive'         # update default version, as of problems with login
         'Discord.Discord'
-
+        
         # dev
         'DevToys-app.DevToys'
         'Microsoft.VisualStudioCode'
-
+        
         # gaming
         'Valve.Steam'
+        'GOG.Galaxy'
+        'Amazon.Games'
+        'EpicGames.EpicGamesLauncher'
+        'ElectronicArts.EADesktop'
+        'Ubisoft.Connect'
         'CloudImperiumGames.RSILauncher' # starcitizen
         
         # work
@@ -63,7 +69,7 @@ function Initialize-CoreSoftware {
         # "ScooterSoftware.BeyondCompare4"
         # "Microsoft.VisualStudioCode"
         # "mRemoteNG.mRemoteNG"
-    ) |% {
+    ) | ForEach-Object {
         winget install $_ --accept-package-agreements
     }
 
@@ -71,7 +77,7 @@ function Initialize-CoreSoftware {
     # gamebar
     # ptouch editor
 
-            # 'GIGABYTE.GigabyteControlCenter' -> dl appcenter instead
+                # 'GIGABYTE.GigabyteControlCenter' -> dl appcenter instead
         # https://www.gigabyte.com/Motherboard/X570-AORUS-ULTRA-rev-11-12/support#support-dl-utility
     # |% { winget install $_ --accept-package-agreements }
 }
@@ -91,8 +97,9 @@ function Start-ScreenSaver {
 
 # TODO:
 # - Energy-Saving Settings to never turn off or hibernate, screen off: 15m
-# - find and import streamdeck profile
-
+# - find and import streamdeck profile (see next point)
+# - get onedrive path, install app profiles from onedrive after setting onderive up correctly
+# - add steam library folder from games drive to steam and make it default
 
 
 # # Define the folder to add as a Steam library
