@@ -43,6 +43,7 @@ function Initialize-CoreSoftware {
         'Logitech.GHUB'
         'Elgato.StreamDeck'
         'Synology.DriveClient' # sync
+        'Microsoft.OneDrive' # update default version, as of problems with login
         
         'Valve.Steam'
         'CloudImperiumGames.RSILauncher' # starcitizen
