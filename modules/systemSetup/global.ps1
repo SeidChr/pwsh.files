@@ -34,16 +34,17 @@ function Initialize-GamesDrive {
 function Initialize-CoreSoftware {
     @(
         #'Microsoft.PowerShell'
-        'Microsoft.WindowsTerminal'
         'Git.Git'
+        'Microsoft.WindowsTerminal'
         'Microsoft.Sysinternals'
         'Microsoft.VisualStudioCode'
-        'Valve.Steam'
         'Discord.Discord'
         '9PF0ZF86W5HK' # passwarden
-        'Elgato.StreamDeck'
         'Logitech.GHUB'
-        'GIGABYTE.GigabyteControlCenter'
+        'Elgato.StreamDeck'
+        'Synology.DriveClient' # sync
+        
+        'Valve.Steam'
         'CloudImperiumGames.RSILauncher' # starcitizen
     ) |% {
         winget install $_ --accept-package-agreements
@@ -51,7 +52,8 @@ function Initialize-CoreSoftware {
 
     # todos:
     # gamebar
-    
+            # 'GIGABYTE.GigabyteControlCenter' -> dl appcenter instead
+        # https://www.gigabyte.com/Motherboard/X570-AORUS-ULTRA-rev-11-12/support#support-dl-utility
     # |% { winget install $_ --accept-package-agreements }
 }
 
