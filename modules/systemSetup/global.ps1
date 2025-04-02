@@ -32,7 +32,9 @@ function Initialize-GamesDrive {
 }
 
 function Initialize-CoreSoftware {
-    @(
+    param([switch]$IncludeWork, [switch]$IncludeGaming)
+
+    $privateSoftware = @(
         # essentials
         #'Microsoft.PowerShell'      # must be here before this runs ... can only install manually
         # install manually: winget install 'Microsoft.PowerShell' --accept-package-agreements
@@ -47,13 +49,16 @@ function Initialize-CoreSoftware {
         'Logitech.GHUB'              # setting suploaded in profile and can be applied from there
         '9PF0ZF86W5HK'               # passwarden
         'Microsoft.OneDrive'         # update default version, as of problems with login
-        'Discord.Discord'
-        
+        'Discord.Discord'            #### cannot update with winget. # must be done manually
+        'Obsidian.Obsidian'          # notetaking
+
         # dev
         'DevToys-app.DevToys'
         'Microsoft.VisualStudioCode'
-        
-        # gaming
+        'Notepad++.Notepad++'
+    )
+
+    $gamingSoftware = @(
         'Valve.Steam'
         'GOG.Galaxy'
         'Amazon.Games'
@@ -61,15 +66,25 @@ function Initialize-CoreSoftware {
         'ElectronicArts.EADesktop'
         'Ubisoft.Connect'
         'CloudImperiumGames.RSILauncher' # starcitizen
-        
-        # work
-        # 'DominikReichl.KeePass'
-        # "Microsoft.VisualStudio.2022.Enterprise"
-        # "Axosoft.GitKraken"
-        # "ScooterSoftware.BeyondCompare4"
-        # "Microsoft.VisualStudioCode"
-        # "mRemoteNG.mRemoteNG"
-    ) | ForEach-Object {
+        # 9PMC9MN3ZZ85 # 8bitdo
+    )
+
+    $workSoftware = @(
+        'DominikReichl.KeePass'
+        "Microsoft.VisualStudio.2022.Enterprise"
+        "Axosoft.GitKraken"
+        "ScooterSoftware.BeyondCompare4"
+        "Microsoft.VisualStudioCode"
+        "mRemoteNG.mRemoteNG"
+    )
+
+    $softwareList = [System.Collections.ArrayList]::new($privateSoftware)
+
+    if ($IncludeGaming) { $softwareList.AddRange($gamingSoftware) }
+    if ($IncludeWork) { $softwareList.AddRange($workSoftware) }
+
+    $softwareList | ForEach-Object {
+        Write-Host "Installing/Updating $_"
         winget install $_ --accept-package-agreements
     }
 
@@ -97,10 +112,11 @@ function Start-ScreenSaver {
 
 # TODO:
 # - Energy-Saving Settings to never turn off or hibernate, screen off: 15m
+# - turn off input usability helpers like press strl multiple times to show the mouse
 # - find and import streamdeck profile (see next point)
 # - get onedrive path, install app profiles from onedrive after setting onderive up correctly
 # - add steam library folder from games drive to steam and make it default
-
+# - set all game-launcher default paths to respective d-drive
 
 # # Define the folder to add as a Steam library
 # $libraryFolder = "D:\Steam"  # Replace with your desired folder path
