@@ -32,38 +32,59 @@ function Initialize-GamesDrive {
 }
 
 function Initialize-CoreSoftware {
-    @(
+    param([switch]$IncludeWork, [switch]$IncludeGaming)
+
+    $privateSoftware = @(
         # essentials
-        #'Microsoft.PowerShell'
-        'Git.Git'
+        #'Microsoft.PowerShell'      # must be here before this runs ... can only install manually
+        # install manually: winget install 'Microsoft.PowerShell' --accept-package-agreements
+        'Git.Git'                    # to download and refresh this very profile. also devdw
         'Microsoft.WindowsTerminal'
         '7zip.7zip'
         'Docker.DockerDesktop'
         'Microsoft.Sysinternals'
         'Microsoft.PowerToys'
-        'Synology.DriveClient' # sync
-        'Elgato.StreamDeck'
-        'Logitech.GHUB'
-        '9PF0ZF86W5HK' # passwarden
-        'Microsoft.OneDrive' # update default version, as of problems with login
-        'Discord.Discord'
+        'Synology.DriveClient'       # sync
+        'Elgato.StreamDeck'          # onedrive dump private 20250320
+        'Logitech.GHUB'              # setting suploaded in profile and can be applied from there
+        '9PF0ZF86W5HK'               # passwarden
+        'Microsoft.OneDrive'         # update default version, as of problems with login
+        'Discord.Discord'            #### cannot update with winget. # must be done manually
+        'Obsidian.Obsidian'          # notetaking
 
         # dev
         'DevToys-app.DevToys'
         'Microsoft.VisualStudioCode'
+        'Notepad++.Notepad++'
+    )
 
-        # gaming
+    $gamingSoftware = @(
         'Valve.Steam'
+        'GOG.Galaxy'
+        'Amazon.Games'
+        'EpicGames.EpicGamesLauncher'
+        'ElectronicArts.EADesktop'
+        'Ubisoft.Connect'
         'CloudImperiumGames.RSILauncher' # starcitizen
-        
-        # work
-        # 'DominikReichl.KeePass'
-        # "Microsoft.VisualStudio.2022.Enterprise"
-        # "Axosoft.GitKraken"
-        # "ScooterSoftware.BeyondCompare4"
-        # "Microsoft.VisualStudioCode"
-        # "mRemoteNG.mRemoteNG"
-    ) |% {
+        # 9PMC9MN3ZZ85 # 8bitdo
+    )
+
+    $workSoftware = @(
+        'DominikReichl.KeePass'
+        "Microsoft.VisualStudio.2022.Enterprise"
+        "Axosoft.GitKraken"
+        "ScooterSoftware.BeyondCompare4"
+        "Microsoft.VisualStudioCode"
+        "mRemoteNG.mRemoteNG"
+    )
+
+    $softwareList = [System.Collections.ArrayList]::new($privateSoftware)
+
+    if ($IncludeGaming) { $softwareList.AddRange($gamingSoftware) }
+    if ($IncludeWork) { $softwareList.AddRange($workSoftware) }
+
+    $softwareList | ForEach-Object {
+        Write-Host "Installing/Updating $_"
         winget install $_ --accept-package-agreements
     }
 
@@ -71,7 +92,7 @@ function Initialize-CoreSoftware {
     # gamebar
     # ptouch editor
 
-            # 'GIGABYTE.GigabyteControlCenter' -> dl appcenter instead
+                # 'GIGABYTE.GigabyteControlCenter' -> dl appcenter instead
         # https://www.gigabyte.com/Motherboard/X570-AORUS-ULTRA-rev-11-12/support#support-dl-utility
     # |% { winget install $_ --accept-package-agreements }
 }
@@ -91,9 +112,11 @@ function Start-ScreenSaver {
 
 # TODO:
 # - Energy-Saving Settings to never turn off or hibernate, screen off: 15m
-# - find and import streamdeck profile
-
-
+# - turn off input usability helpers like press strl multiple times to show the mouse
+# - find and import streamdeck profile (see next point)
+# - get onedrive path, install app profiles from onedrive after setting onderive up correctly
+# - add steam library folder from games drive to steam and make it default
+# - set all game-launcher default paths to respective d-drive
 
 # # Define the folder to add as a Steam library
 # $libraryFolder = "D:\Steam"  # Replace with your desired folder path
