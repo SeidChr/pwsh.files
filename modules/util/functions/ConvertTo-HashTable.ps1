@@ -2,6 +2,7 @@ param (
     [scriptblock] $Key,
     [scriptblock] $Value,
     [Parameter(ValueFromPipeline)] $InputObject
+    [switch]$AsObject
 )
 
 begin {
@@ -11,7 +12,11 @@ begin {
 }
 
 end {
-    $result
+    if ($AsObject) {
+        [pscustomobject]$result
+    } else {
+        $result
+    }
 }
 
 process { 
