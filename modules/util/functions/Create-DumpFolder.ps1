@@ -81,8 +81,8 @@ if ($CreateSolution) {
 
 if ($Lib) {
     InPath $newFolderPath {
-        $prjName = "$titleCaseName.Lib"
-        $tstName = "$titleCaseName.Lib.Tests"
+        $prjName = "$titleCaseName.Library"
+        $tstName = "$titleCaseName.Library.Tests"
 
         $script:libName = $prjName
 
