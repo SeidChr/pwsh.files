@@ -1,10 +1,26 @@
 param(
     [string] $Name,
-    [switch] $Pwsh,
-    [switch] $Console,
-    [switch] $Web,
-    [switch] $Lib,
     [switch] $Git,
+
+    [switch] $Pwsh,
+
+    [Parameter(ParameterSetName='Console')]
+    [switch] $Console,
+
+    [Parameter(ParameterSetName='Web')]
+    [switch] $Web,
+
+    [Parameter(ParameterSetName='Lib')]
+    [switch] $Lib,
+
+    [Parameter(ParameterSetName='Web')]
+    [Parameter(ParameterSetName='Lib')]
+    [Parameter(ParameterSetName='Console')]
+    [switch] $Test,
+
+    [Parameter(ParameterSetName='Console')]
+    [switch] $Spectre,
+
     # clears out an possibly existing folder to start over
     [switch] $Clean
 )
@@ -39,7 +55,6 @@ function InPath {
     } finally {
         Pop-Location
     }
-
 }
 
 if (Test-Path $newFolderPath) {
@@ -68,7 +83,6 @@ if ($Pwsh) {
     }
 }
 
-
 if ($CreateSolution) {
     Push-Location $newFolderPath
     try {
@@ -79,6 +93,15 @@ if ($CreateSolution) {
     }
 }
 
+function Add-TestProject 
+{
+    param($TestProjectName, $ProjectName)
+
+    dotnet new xunit --name $TestProjectName
+    dotnet sln add $TestProjectName
+    dotnet     add $TestProjectName reference $ProjectName
+}
+
 if ($Lib) {
     InPath $newFolderPath {
         $prjName = "$titleCaseName.Library"
@@ -87,10 +110,11 @@ if ($Lib) {
         $script:libName = $prjName
 
         dotnet new classlib --name $prjName
-        dotnet new xunit    --name $tstName
         dotnet sln add $prjName
-        dotnet sln add $tstName
-        dotnet     add $tstName reference $prjName
+
+        if ($Test) {
+            Add-TestProject $tstName $prjName
+        }
     }
 }
 
@@ -104,11 +128,16 @@ if ($Console) {
             dotnet add $prjName reference $script:libName
         }
 
-        dotnet new xunit   --name $tstName
-
         dotnet sln add $prjName
-        dotnet sln add $tstName
-        dotnet     add $tstName reference $prjName
+
+        if ($Test) {
+            Add-TestProject $tstName $prjName
+        }
+
+        if ($Spectre) {
+            dotnet add $prjName package Spectre.Console
+            dotnet add $prjName package Spectre.Console.Cli
+        }
     }
 }
 
@@ -118,14 +147,16 @@ if ($Web) {
         $tstName = "$titleCaseName.Web.Tests"
 
         dotnet new webapi --name $prjName
+
         if ($Lib) {
             dotnet add $prjName reference $script:libName
         }
 
-        dotnet new xunit  --name $tstName
         dotnet sln add $prjName
-        dotnet sln add $tstName
-        dotnet     add $tstName reference $prjName
+
+        if ($Test) {
+            Add-TestProject $tstName $prjName
+        }
     }
 }
 
