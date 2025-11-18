@@ -57,6 +57,10 @@ function Initialize-CoreSoftware {
         'DevToys-app.DevToys'
         'Microsoft.VisualStudioCode'
         'Notepad++.Notepad++'
+        'voidtools.Everything'
+        '9P8LTPGCBZXD'                #wintoys 
+        'ArminOsaj.AutoDarkMode'
+        'QL-Win.QuickLook'
     )
 
     $gamingSoftware = @(
@@ -78,6 +82,25 @@ function Initialize-CoreSoftware {
         "Microsoft.VisualStudioCode"
         "mRemoteNG.mRemoteNG"
     )
+
+
+##copy/pasta to powershell
+# voidtools.Everything
+# 9P8LTPGCBZXD #wintoys 
+# QL-Win.QuickLook
+# Microsoft.PowerToys
+# xanderfrangos.twinkletray # alternative id: 9PLJWWSV01LK
+
+#Win 11 only:
+# xM4ddy.OFGB
+# winaero.tweaker
+
+# Couldnt find 😕:
+# TrayDir
+
+# not needed:
+# ArminOsaj.AutoDarkMode # should be included in powertoys
+
 
     $softwareList = [System.Collections.ArrayList]::new($privateSoftware)
 
