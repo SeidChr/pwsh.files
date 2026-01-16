@@ -21,6 +21,10 @@ function Start-Elevated {
         $null = Start-Process -Verb RunAs -FilePath $powserShellExecutable -WorkingDirectory $workingDirectory
         Write-Host "Started."
     }
+
+    # |                     |    run pwsh specific user   |                  run cmd as admin                   |  sleep???      |
+    # pwsh -nop -w Hidden -c Start-Process -Verb RunAsUser pwsh '-nop -c Start-Process -Verb RunAs \\\"pwsh\\\"'; Start-Sleep 120
+    # https://superuser.com/questions/661979/run-as-different-user-and-elevate
 }
 
 function Restart-Elevated {

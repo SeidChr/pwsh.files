@@ -48,12 +48,13 @@ function Initialize-CoreSoftware {
         '7zip.7zip'
         'Docker.DockerDesktop'
         'Microsoft.Sysinternals'
-        'Microsoft.PowerToys'
+        'Microsoft.PowerToys' 
+        'Microsoft.OneDrive'         # update default version, as of problems with login
+
         'Synology.DriveClient'       # sync
         'Elgato.StreamDeck'          # onedrive dump private 20250320
         'Logitech.GHUB'              # setting suploaded in profile and can be applied from there
         '9PF0ZF86W5HK'               # passwarden
-        'Microsoft.OneDrive'         # update default version, as of problems with login
         'Discord.Discord'            #### cannot update with winget. # must be done manually
         'Obsidian.Obsidian'          # notetaking
         'ShareX.ShareX'              # recording and sharing of screen
@@ -62,6 +63,10 @@ function Initialize-CoreSoftware {
         'DevToys-app.DevToys'
         'Microsoft.VisualStudioCode'
         'Notepad++.Notepad++'
+        'voidtools.Everything'
+        '9P8LTPGCBZXD'                #wintoys 
+        'ArminOsaj.AutoDarkMode'
+        'QL-Win.QuickLook'
     )
 
     $gamingSoftware = @(
@@ -84,6 +89,25 @@ function Initialize-CoreSoftware {
         "mRemoteNG.mRemoteNG"
     )
 
+
+##copy/pasta to powershell
+# voidtools.Everything
+# 9P8LTPGCBZXD #wintoys 
+# QL-Win.QuickLook
+# Microsoft.PowerToys
+# xanderfrangos.twinkletray # alternative id: 9PLJWWSV01LK
+
+#Win 11 only:
+# xM4ddy.OFGB
+# winaero.tweaker
+
+# Couldnt find 😕:
+# TrayDir
+
+# not needed:
+# ArminOsaj.AutoDarkMode # should be included in powertoys
+
+
     $softwareList = [System.Collections.ArrayList]::new($privateSoftware)
 
     if ($IncludeGaming) { $softwareList.AddRange($gamingSoftware) }
@@ -101,6 +125,12 @@ function Initialize-CoreSoftware {
                 # 'GIGABYTE.GigabyteControlCenter' -> dl appcenter instead
         # https://www.gigabyte.com/Motherboard/X570-AORUS-ULTRA-rev-11-12/support#support-dl-utility
     # |% { winget install $_ --accept-package-agreements }
+
+    #$('Git.Git', 'Microsoft.WindowsTerminal', '7zip.7zip', 'Docker.DockerDesktop', 'Microsoft.Sysinternals',
+    #    'Microsoft.PowerToys', 'Microsoft.OneDrive', 'DominikReichl.KeePass', 'Microsoft.VisualStudio.2022.Enterprise',
+    #    'Axosoft.GitKraken', 'ScooterSoftware.BeyondCompare4', 'Microsoft.VisualStudioCode', 'mRemoteNG.mRemoteNG') | ForEach-Object {
+    #    Write-Host "Installing/Updating $_"; winget install $_ --accept-package-agreements
+    #}
 }
 
 function Start-ScreenSaver {
