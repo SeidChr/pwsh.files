@@ -34,6 +34,11 @@ function Initialize-GamesDrive {
 function Initialize-CoreSoftware {
     param([switch]$IncludeWork, [switch]$IncludeGaming)
 
+    # TODO: can we use https://ninite.com/ ?
+
+    # activate vm platform for docker
+    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all
+
     $privateSoftware = @(
         # essentials
         #'Microsoft.PowerShell'      # must be here before this runs ... can only install manually
@@ -51,6 +56,7 @@ function Initialize-CoreSoftware {
         'Microsoft.OneDrive'         # update default version, as of problems with login
         'Discord.Discord'            #### cannot update with winget. # must be done manually
         'Obsidian.Obsidian'          # notetaking
+        'ShareX.ShareX'              # recording and sharing of screen
 
         # dev
         'DevToys-app.DevToys'
