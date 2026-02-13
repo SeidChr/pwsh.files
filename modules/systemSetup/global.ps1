@@ -32,7 +32,7 @@ function Initialize-GamesDrive {
 }
 
 function Initialize-CoreSoftware {
-    param([switch]$IncludeWork, [switch]$IncludeGaming)
+    param([switch]$IncludePrivateOnly, [switch]$IncludeWork, [switch]$IncludeGaming, [switch]$IncludeWin11, [switch]$IncludeHacky)
 
     # TODO: can we use https://ninite.com/ ?
 
@@ -51,13 +51,10 @@ function Initialize-CoreSoftware {
         'Microsoft.PowerToys' 
         'Microsoft.OneDrive'         # update default version, as of problems with login
 
-        'Synology.DriveClient'       # sync
         'Elgato.StreamDeck'          # onedrive dump private 20250320
         'Logitech.GHUB'              # setting suploaded in profile and can be applied from there
         '9PF0ZF86W5HK'               # passwarden
-        'Discord.Discord'            #### cannot update with winget. # must be done manually
         'Obsidian.Obsidian'          # notetaking
-        'ShareX.ShareX'              # recording and sharing of screen
 
         # dev
         'DevToys-app.DevToys'
@@ -66,7 +63,14 @@ function Initialize-CoreSoftware {
         'voidtools.Everything'
         '9P8LTPGCBZXD'                #wintoys 
         'ArminOsaj.AutoDarkMode'
-        'QL-Win.QuickLook'
+        # 'QL-Win.QuickLook'          preview with space bar. included in powertoys
+    )
+
+    $privateOnlySoftware = @(
+        'Discord.Discord'            #### cannot update with winget. # must be done manually
+        'Synology.DriveClient'       # sync
+        'ShareX.ShareX'              # recording and sharing of screen
+        'Google.EarthPro'
     )
 
     $gamingSoftware = @(
@@ -82,19 +86,29 @@ function Initialize-CoreSoftware {
 
     $workSoftware = @(
         'DominikReichl.KeePass'
-        "Microsoft.VisualStudio.2022.Enterprise"
-        "Axosoft.GitKraken"
-        "ScooterSoftware.BeyondCompare4"
-        "Microsoft.VisualStudioCode"
-        "mRemoteNG.mRemoteNG"
+        'Microsoft.VisualStudio.2022.Enterprise'
+        'Axosoft.GitKraken'
+        'ScooterSoftware.BeyondCompare4'
+        'Microsoft.VisualStudioCode'
+        'mRemoteNG.mRemoteNG'
+        'Mobatek.MobaXterm'
+        'Balsamiq.Wireframes'
+        'Google.Chrome'
+        'xanderfrangos.twinkletray'       # allows to adjust screen brightness settings of external monitors from sys tray
+    )
+
+    $hackySoftware = @(
+        'winaero.tweaker'                 # https://winaerotweaker.com/; win10 allowed
+        'xM4ddy.OFGB'                     # pretty hacky, but removing many ads within windows 11
+    )
+
+    $win11Software = @(
+        'RamenSoftware.Windhawk'          # mods essentials back into windows 11 (vertical taskbar, tray icons: always show all+grid)
     )
 
 
+
 ##copy/pasta to powershell
-# voidtools.Everything
-# 9P8LTPGCBZXD #wintoys 
-# QL-Win.QuickLook
-# Microsoft.PowerToys
 # xanderfrangos.twinkletray # alternative id: 9PLJWWSV01LK
 
 #Win 11 only:
@@ -110,6 +124,7 @@ function Initialize-CoreSoftware {
 
     $softwareList = [System.Collections.ArrayList]::new($privateSoftware)
 
+    if ($IncludePrivateOnly) { $softwareList.AddRange($privateOnlySoftware) }
     if ($IncludeGaming) { $softwareList.AddRange($gamingSoftware) }
     if ($IncludeWork) { $softwareList.AddRange($workSoftware) }
 
