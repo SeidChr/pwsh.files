@@ -61,9 +61,10 @@ function Initialize-CoreSoftware {
         'Microsoft.VisualStudioCode'
         'Notepad++.Notepad++'
         'voidtools.Everything'
-        '9P8LTPGCBZXD'                #wintoys 
+        '9P8LTPGCBZXD'               # wintoys 
         'ArminOsaj.AutoDarkMode'
         # 'QL-Win.QuickLook'          preview with space bar. included in powertoys
+        'Google.Antigravity'         # fire and forgett AI IDE (work + private)
     )
 
     $privateOnlySoftware = @(
@@ -97,6 +98,7 @@ function Initialize-CoreSoftware {
         'xanderfrangos.twinkletray'       # allows to adjust screen brightness settings of external monitors from sys tray
     )
 
+    # not integrated. just here for future, or copy paste
     $hackySoftware = @(
         'winaero.tweaker'                 # https://winaerotweaker.com/; win10 allowed
         'xM4ddy.OFGB'                     # pretty hacky, but removing many ads within windows 11
