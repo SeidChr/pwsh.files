@@ -65,6 +65,7 @@ function Initialize-CoreSoftware {
         'ArminOsaj.AutoDarkMode'
         # 'QL-Win.QuickLook'          preview with space bar. included in powertoys
         'Google.Antigravity'         # fire and forgett AI IDE (work + private)
+        'Warp.Warp'                  # AI something ...
     )
 
     $privateOnlySoftware = @(
