@@ -70,7 +70,8 @@ function Initialize-CoreSoftware {
 
     $privateOnlySoftware = @(
         'Discord.Discord'            #### cannot update with winget. # must be done manually
-        'Synology.DriveClient'       # sync
+        'Synology.DriveClient'       # sync to synology
+        'pCloudAG.pCloudDrive'       # sync to pcloud (because syno has no native sync client)
         'ShareX.ShareX'              # recording and sharing of screen
         'Google.EarthPro'
     )
