@@ -65,7 +65,7 @@ function Initialize-CoreSoftware {
         'ArminOsaj.AutoDarkMode'
         # 'QL-Win.QuickLook'          preview with space bar. included in powertoys
         'Google.Antigravity'         # fire and forgett AI IDE (work + private)
-        'Warp.Warp'                  # AI something ...
+        'ScooterSoftware.BeyondCompare.4' # comparing files. private and work. licensed.
     )
 
     $privateOnlySoftware = @(
@@ -98,6 +98,7 @@ function Initialize-CoreSoftware {
         'Balsamiq.Wireframes'
         'Google.Chrome'
         'xanderfrangos.twinkletray'       # allows to adjust screen brightness settings of external monitors from sys tray
+        'Adobe.Acrobat.Reader.32-bit'
     )
 
     # not integrated. just here for future, or copy paste
