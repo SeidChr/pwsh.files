@@ -27,6 +27,54 @@ function Start-Elevated {
     # https://superuser.com/questions/661979/run-as-different-user-and-elevate
 }
 
+function Elevate-Here {
+    if (!$IsWindows) {
+        return
+    }
+
+    $principal = New-Object Security.Principal.WindowsPrincipal(
+        [Security.Principal.WindowsIdentity]::GetCurrent()
+    )
+
+    if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        "Already elevated."
+        return
+    }
+
+    $powerShellExecutable = (Get-Process -Id $PID).Path
+    $workingDirectory = (Get-Location).ProviderPath
+
+    if ($env:WT_SESSION) {
+        $process = Get-Process -Id $PID
+        while ($process -and $process.ProcessName -ne 'WindowsTerminal') {
+            $process = $process.Parent
+        }
+
+        $terminalExecutable = $process.Path
+        if (!$terminalExecutable) {
+            $terminalExecutable = (Get-Command wt.exe -ErrorAction SilentlyContinue).Source
+        }
+
+        if (!$terminalExecutable) {
+            throw 'The current shell is hosted by Windows Terminal, but its executable could not be found.'
+        }
+
+        $terminalArguments = @(
+            '-w'
+            'new'
+            'new-tab'
+            '--startingDirectory'
+            "`"$workingDirectory`""
+            "`"$powerShellExecutable`""
+        )
+
+        $null = Start-Process -Verb RunAs -FilePath $terminalExecutable -ArgumentList $terminalArguments
+        return
+    }
+
+    $null = Start-Process -Verb RunAs -FilePath $powerShellExecutable -WorkingDirectory $workingDirectory
+}
+
 function Restart-Elevated {
     param($script = $MyInvocation.PSCommandPath)
 
