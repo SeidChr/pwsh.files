@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Starts the Windows screensaver when a specific USB device is disconnected.
+Turns off the displays when a specific USB device is disconnected.
 
 .PARAMETER Identifier
 USB/PnP device identifier to watch. By default this must exactly match one of
@@ -20,6 +20,13 @@ Allows the identifier to use PowerShell wildcard matching, for example
 .\Watch-UsbDisconnectScreensaver.ps1 '*VID_1234&PID_5678*' -Wildcard
 
 .NOTES
+The display-off command causes monitors with automatic input switching to
+select another active input. On Modern Standby systems, disabling Modern
+Standby may be required to prevent display-off from also suspending the system.
+Run Set-ModernStandbyOverride without parameters to inspect the override. Run
+Set-ModernStandbyOverride -Disable from an elevated PowerShell session to
+disable Modern Standby after the next Windows restart.
+
 Ways to find the USB identifier in Windows:
 
 1. Device Manager
@@ -65,7 +72,7 @@ $ErrorActionPreference = 'Stop'
 
 Add-Type '[DllImport("user32.dll")]public static extern int PostMessage(int a, int b, int c, int d);' -Name ScreensaverNative -Namespace UsbWatch | Out-Null
 
-function Start-Screensaver {
+function Disable-Monitors {
     [UsbWatch.ScreensaverNative]::PostMessage(-1, 0x0112, 0xF170, 2) | Out-Null
 }
 
@@ -115,7 +122,8 @@ while ($true) {
     $isPresent = Test-DevicePresent -DeviceIdentifier $Identifier -UseWildcard $Wildcard.IsPresent
 
     if ($wasPresent -and -not $isPresent) {
-        Start-Screensaver
+        Write-Host 'Turn Off Screens'
+        Disable-Monitors
     }
 
     $wasPresent = $isPresent
