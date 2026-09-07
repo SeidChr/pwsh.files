@@ -8,8 +8,11 @@ if (Test-Path $globalPath) {
 }
 
 if (Test-Path $functionsPath) {
-    Get-ChildItem $functionsPath -Filter "*.ps1" | ForEach-Object {
-        $name = $(Split-Path -LeafBase $_)
-        . Invoke-Expression "function $name { `n $(Get-Content $_ -Raw) `n }";
+    foreach ($filePath in [System.IO.Directory]::EnumerateFiles($functionsPath, "*.ps1")) {
+        $functionName = [System.IO.Path]::GetFileNameWithoutExtension($filePath)
+        $functionBody = $ExecutionContext.SessionState.Module.NewBoundScriptBlock(
+            [scriptblock]::Create([System.IO.File]::ReadAllText($filePath))
+        )
+        Set-Item -LiteralPath "Function:$functionName" -Value $functionBody
     }
 }
