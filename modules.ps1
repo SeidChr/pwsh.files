@@ -25,7 +25,7 @@ try {
 } finally {
     $overallStopwatch.Stop()
 
-    if ($overallStopwatch.Elapsed.TotalSeconds -gt 1) {
+    if ($overallStopwatch.Elapsed.TotalSeconds -gt 2) {
         Write-Warning ("Modules took {0:N2} milliseconds overall to load." -f $overallStopwatch.Elapsed.TotalMilliseconds)
         $moduleLoadTimes |
             Sort-Object Milliseconds -Descending |
