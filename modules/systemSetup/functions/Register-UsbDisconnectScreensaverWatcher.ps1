@@ -9,6 +9,7 @@ if (-not $isAdmin) {
     throw 'This command must be executed in an elevated Terminal.'
 }
 
+# $pwsh = 'pwsh'
 $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
 
 $wt = (Get-Command wt.exe -ErrorAction Stop).Source
