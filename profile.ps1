@@ -18,14 +18,25 @@ if (Test-GitDirty -Path $PSScriptRoot) {
 #$env:PATH += [System.IO.Path]::PathSeparator + "."
 Add-Path "."
 
-# Shows navigable menu of all options when hitting Tab
-Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+$isInteractiveConsole =
+    $Host.Name -eq 'ConsoleHost' -and
+    [Environment]::UserInteractive -and
+    -not [Console]::IsInputRedirected -and
+    -not [Console]::IsOutputRedirected
 
-Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function ForwardWord
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+if ($isInteractiveConsole) {
+    Set-PSReadLineOption -PredictionSource History
+
+    # Shows navigable menu of all options when hitting Tab
+    Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+    
+    Set-PSReadLineOption -PredictionSource History
+    Set-PSReadLineOption -HistorySearchCursorMovesToEnd
+    Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function ForwardWord
+    Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+    Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+}
+
 
 # https://stackoverflow.com/a/52485269/1280354
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parameters_default_values?view=powershell-7.2
