@@ -154,9 +154,12 @@ function TypeY {
         Timeout $Timeout
     }
 
-    $lineFeedCharacter = "`n"
-    $normalizedText = $Text.Replace("`r`n", "`n").Replace("`r", $lineFeedCharacter)
-    $lineFeedCharacterCode = [int][char]$lineFeedCharacter
+    $normalizedText = $Text.Replace("`r`n", "`n").Replace("`r", "`n")
+    $specialKeys = @{
+        [char]"`n" = '{ENTER}'
+        [char]"`t" = '{TAB}'
+    }
+    
     $characterIndex = 0
 
     foreach ($character in $normalizedText.ToCharArray()) {
@@ -164,7 +167,11 @@ function TypeY {
         $modifierState = ($keyMapping -shr 8) -band 0x07
         $usesModifier = $keyMapping -ne -1 -and $modifierState -ne 0
 
-        if ($usesModifier) {
+        if ($specialKeys.ContainsKey($character)) {
+            [System.Windows.Forms.SendKeys]::SendWait($specialKeys[$character])
+            [System.Windows.Forms.SendKeys]::Flush()
+            Start-Sleep -Milliseconds $DelayMs
+        } elseif ($usesModifier) {
             $virtualKeyCode = [byte]($keyMapping -band 0xFF)
             [PsClipboardTyper.KeyboardEvent]::SendModifiedKey(
                 $virtualKeyCode,
@@ -172,13 +179,8 @@ function TypeY {
                 $ModifierSettleMs,
                 $KeyPressMs
             )
-        }
-        else {
-            $toSend = switch ($character) {
-                { [int][char]$_ -eq $lineFeedCharacterCode } { '{ENTER}' }
-                ' ' { ' ' }
-                default { "{$_}" }
-            }
+        } else {
+            $toSend = if ($character -eq ' ') { ' ' } else { "{$character}" }
 
             [System.Windows.Forms.SendKeys]::SendWait($toSend)
             [System.Windows.Forms.SendKeys]::Flush()
@@ -211,8 +213,7 @@ while ($true) {
 
         try {
             $clipboard = Get-Clipboard -Raw -ErrorAction Stop
-        }
-        catch {
+        } catch {
             $clipboardReadSucceeded = $false
         }
 
@@ -237,8 +238,7 @@ while ($true) {
         try {
             TypeY -Timeout:0 -Text:$clipboard
             Write-Host ' Finished.'
-        }
-        catch {
+        } catch {
             Write-Host ' Failed.'
             Write-Warning "Typing failed: $($_.Exception.Message)"
         }
